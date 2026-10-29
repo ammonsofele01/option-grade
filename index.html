@@ -252,14 +252,18 @@
     .t-switch { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); cursor:pointer; }
     .t-chart { width:100%; height:170px; display:block; background:#0b0f14; border:1px solid var(--border); border-radius:10px; }
     .t-sub { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:14px 0 6px; font-weight:600; }
+  .sr-line{padding:12px 14px;border-radius:10px;background:#0f1620;border:1px solid var(--border);font-size:14px;line-height:1.45;margin-bottom:10px}
+    .sr-line.up{border-color:#14532d}.sr-line.down{border-color:#7f1d1d}
+    .sr-table td,.sr-table th{white-space:nowrap}.sr-table tr.near td{background:#16202c;font-weight:600}
+    .sr-tag{font-size:11px;font-weight:700;padding:2px 6px;border-radius:5px}.sr-tag.S{background:#0f2d1e;color:#4ade80}.sr-tag.R{background:#2d1212;color:#f87171}
   </style>
 </head>
 <body>
   <div class="container">
     <div class="app-header">
       <div>
-        <div class="app-title">⚡ OptionGrader Sniper Coach</div>
-        <div class="app-sub">Video Probability (L1–L3 / H1–H3) + STDV & 0.705 OTE</div>
+        <div class="app-title">OptionGrader</div>
+        <div class="app-sub">0DTE desk · STDV · 0.705 OTE · S/R</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
         <div class="badge" id="matchBadge">🟢 Live Market Auto-Sync</div>
@@ -272,7 +276,7 @@
     <!-- ===== SIMPLE BEGINNER SECTION ===== -->
     <div class="s-step">
       <div class="s-step-title">Step 1 · Select Ticker</div>
-      <div class="s-step-sub">Choose a symbol or type any ticker.</div>
+      
       <div class="s-row">
         <input type="text" id="simpleTicker" class="s-input" value="QQQ" placeholder="e.g. TSLA" autocomplete="off" />
         <div class="s-price" id="simplePrice">$—</div>
@@ -290,9 +294,17 @@
       <div id="simpleAnswer"></div>
     </div>
 
+    <div class="s-step" id="srStep">
+      <div class="s-step-title">Step 3 · Support &amp; Resistance</div>
+      <div id="srLine" class="sr-line"></div>
+      <svg class="t-chart" id="srChart" viewBox="0 0 600 200" preserveAspectRatio="none"></svg>
+      <div style="overflow-x:auto"><table class="t-table sr-table" id="srTable"></table></div>
+      <div class="s-step-sub" style="margin:8px 0 0">Bounce % is an estimate from touches, recency, confluence, volume, approach speed and trend. It is not a guarantee.</div>
+    </div>
+
     <div class="s-step">
-      <div class="s-step-title">Step 3 · 0DTE Contracts</div>
-      <div class="s-step-sub">Same-day expiry contracts, ranked by reward vs. risk. Tap one for a breakdown.</div>
+      <div class="s-step-title">Step 4 · 0DTE Contracts</div>
+      
       <div class="s-tabs">
         <button id="sTab_best" onclick="setSimpleTab('best')">Top ranked</button>
         <button id="sTab_call" onclick="setSimpleTab('call')">Calls</button>
@@ -303,7 +315,7 @@
     </div>
 
     <div class="s-step" id="tTradeStep">
-      <div class="s-step-title">Step 4 · Size &amp; Log Your Trade</div>
+      <div class="s-step-title">Step 5 · Size &amp; Log Trade</div>
       <div id="tSizing"></div>
       <div id="tGuard"></div>
       <div class="t-form">
@@ -311,7 +323,7 @@
         <div><label>Contracts</label><input class="t-in" type="number" min="1" step="1" id="tQty" value="1" /></div>
         <div style="display:flex;align-items:flex-end"><button class="t-btn" style="width:100%" id="tLogBtn" onclick="ogLogTrade()">Log trade</button></div>
       </div>
-      <div class="s-step-sub" style="margin:0">Record a trade you placed in your broker app. Entry is prefilled with the selected contract's ask price per share; change it to your actual fill. One contract = 100 shares.</div>
+      <div class="s-step-sub" style="margin:0">Log trades you placed in your broker. Entry = price per share (1 contract = 100 shares).</div>
     </div>
 
     <div class="s-step">
@@ -351,109 +363,32 @@
       <summary>Detailed analysis</summary>
 
     <div class="card">
-      <div class="card-title">1. Enter Ticker — Auto-Picks Call vs. Put & Hold Time</div>
+      <div class="card-title">Data Controls</div>
       <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-        <button onclick="syncLiveMarket(currentTicker, true)" style="background:#10b981;color:#06281e;border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">🔄 Sync Live Market Data Now</button>
+        <button onclick="syncLiveMarket(currentTicker, true)" style="background:#10b981;color:#06281e;border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">Sync now</button>
         <label style="display:inline-flex;align-items:center;gap:5px;margin:0;font-size:11.5px;color:#cbd5e1;cursor:pointer;">
-          <input type="checkbox" id="autoSyncToggle" checked style="width:15px;height:15px;margin:0;" /> Auto-Update Every 30s at Market Open
+          <input type="checkbox" id="autoSyncToggle" checked style="width:15px;height:15px;margin:0;" /> Auto-update every 30s
         </label>
         <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
           <span style="font-size:11px;color:var(--muted);">Live Price ($):</span>
           <input type="number" step="0.01" id="manualPriceInput" placeholder="Auto" style="width:88px;padding:6px 8px;font-size:13px;" title="Optional: type exact price from your broker" />
         </div>
       </div>
-      <div class="ticker-bar">
-        <div>
-          <label>Type Any Stock Ticker</label>
-          <input type="text" id="tickerInput" value="QQQ" placeholder="QQQ, SPY, TSLA..." />
-        </div>
-        <div>
-          <label>Quick-Pick Popular Tickers</label>
-          <select id="tickerSelect">
-            <option value="QQQ">QQQ — Nasdaq 100 ETF ($720.79)</option>
-            <option value="SPY">SPY — S&P 500 ETF ($769.53)</option>
-            <option value="TSLA">TSLA — Tesla ($406.22)</option>
-            <option value="NVDA">NVDA — NVIDIA ($217.79)</option>
-            <option value="AAPL">AAPL — Apple ($345.41)</option>
-            <option value="META">META — Meta ($623.46)</option>
-            <option value="AMD">AMD — AMD ($559.21)</option>
-            <option value="PLTR">PLTR — Palantir ($199.50)</option>
-            <option value="COIN">COIN — Coinbase ($160.35)</option>
-            <option value="SOFI">SOFI — SoFi ($16.66)</option>
-            <option value="NFLX">NFLX — Netflix ($62.56)</option>
-            <option value="BA">BA — Boeing ($171.45)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="seg-row">
-        <div class="btn-seg active-call" id="btnCall" onclick="setOptType('call')">BUY CALLS</div>
-        <div class="btn-seg" id="btnPut" onclick="setOptType('put')">BUY PUTS</div>
-      </div>
-
-      <div class="mode-row">
-        <div class="btn-seg" id="mode_scalp_2dte" onclick="setMode('scalp_2dte')">2DTE Scalp</div>
-        <div class="btn-seg active-mode" id="mode_zero_dte" onclick="setMode('zero_dte')">0DTE 30m</div>
-        <div class="btn-seg" id="mode_friday_5dte" onclick="setMode('friday_5dte')">5DTE Safe</div>
-        <div class="btn-seg" id="mode_lotto_0dte" onclick="setMode('lotto_0dte')">0DTE Lotto</div>
-      </div>
-
-      <label style="margin-top:6px;">Put/Call Ratio Bot Override (From Video Strategy)</label>
-      <div class="flow-row">
+      <input type="hidden" id="tickerInput" value="QQQ" />
+      <div class="flow-row" style="display:none">
         <div class="btn-seg active-mode" id="flow_auto" onclick="setFlow('auto')">Auto-Detect</div>
         <div class="btn-seg" id="flow_more_puts_bullish" onclick="setFlow('more_puts_bullish')">More Puts (Bullish)</div>
         <div class="btn-seg" id="flow_more_calls_bearish" onclick="setFlow('more_calls_bearish')">More Calls (Bearish)</div>
       </div>
     </div>
 
-    <div id="verdictBox" class="verdict-box good">
-      <div class="verdict-head" id="verdictHead">Loading...</div>
-      <div class="verdict-desc" id="verdictDesc"></div>
-    </div>
-
-        <div class="card" id="zeroDteChainCard">
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
-        <div class="card-title" style="margin:0;color:#60a5fa;">🔥 2. Live 0DTE Option Contracts — Click Any Contract to Grade (Highest Reward : Lowest Risk)</div>
-        <span class="rr-badge" id="chainSourceBadge">⚡ 0DTE Chain Active</span>
-      </div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
-        Tap any <strong>0DTE (Same-Day Expiry)</strong> contract below to see its exact <strong>GOOD % vs. BAD %</strong> score, <strong>Reward-to-Risk Ratio (R:R)</strong>, <strong>-25% Hard Stop Risk ($)</strong>, and <strong>-2.0 STDV Target Reward ($)</strong>.
-      </div>
-
-      <div class="chain-tabs">
-        <div class="btn-seg active-mode" id="tab_best_rr" onclick="setChainFilter('best_rr')">Top ranked R:R Setups</div>
-        <div class="btn-seg" id="tab_calls" onclick="setChainFilter('calls')">📈 All 0DTE Calls</div>
-        <div class="btn-seg" id="tab_puts" onclick="setChainFilter('puts')">📉 All 0DTE Puts</div>
-      </div>
-
-      <div class="top-picks-grid" id="topZeroDtePicks"></div>
-
-      <div id="selectedContractInspector" class="inspector-box good"></div>
-
-      <div class="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>0DTE Contract (Click to Grade)</th>
-              <th>Bid / Ask (Mid)</th>
-              <th>Delta · Gamma</th>
-              <th>Max Risk (-25%) → Target Reward</th>
-              <th>Reward:Risk</th>
-              <th>Good vs. Bad %</th>
-            </tr>
-          </thead>
-          <tbody id="zeroDteChainBody"></tbody>
-        </table>
-      </div>
-    </div>
-
-<div class="card">
-      <div class="card-title">3. Precision Sniper Numbers (STDV + OTE + Hold Time)</div>
+    <div class="card">
+      <div class="card-title">Precision Sniper Numbers (STDV + OTE + Hold Time)</div>
       <div class="metrics-grid" id="metricsGrid"></div>
     </div>
 
     <div class="card">
-      <div class="card-title">4. STDV + OTE & Video Probability Price Ladder</div>
+      <div class="card-title">STDV + OTE Price Ladder</div>
       <table>
         <thead>
           <tr><th>Level</th><th>Price</th><th>Odds</th><th>What It Means (Simple)</th></tr>
@@ -463,7 +398,7 @@
     </div>
 
     <div class="card">
-      <div class="card-title">5. Why Buy Calls vs. Puts? (5 Live Strategy Clues)</div>
+      <div class="card-title">Signal Breakdown</div>
       <table>
         <thead>
           <tr><th>Clue</th><th>Live Reading</th><th>Vote</th><th>Plain-English Explanation</th></tr>
@@ -472,40 +407,13 @@
       </table>
     </div>
 
-    <div class="card">
-      <div class="card-title">6. Precision Hold-Time Planner (15m to 4h)</div>
-      <table>
-        <thead>
-          <tr><th>Hold Time</th><th>If Hits Target</th><th>If Flat (Theta)</th><th>Decay</th><th>Coach Advice</th></tr>
-        </thead>
-        <tbody id="holdBody"></tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <div class="card-title">7. Learn It Yourself: 4-Step Sniper Checklist</div>
-      <div class="step-item">
-        <div class="step-title">Step 1: Spot the 'AMD' Fake-Out Move (Accumulation → Manipulation → Distribution)</div>
-        <div class="step-desc">At market open, wait for price to make a fake-out drop into L2/L3 support (or -2.0 to -2.5 STDV) to trap retail traders into buying Puts at the bottom.</div>
-      </div>
-      <div class="step-item">
-        <div class="step-title">Step 2: Confirm With Contrarian Put/Call Ratio & VIX Cap</div>
-        <div class="step-desc">Video Rule: "More Puts in the market is BULLISH for price; More Calls is BEARISH!" When everyone buys Puts at L2/L3 and VIX caps out at resistance, Market Makers must buy the stock back up.</div>
-      </div>
-      <div class="step-item">
-        <div class="step-title">Step 3: Enter at the 0.705 OTE Pullback (62%–79% Fib Zone)</div>
-        <div class="step-desc">Never chase green candles! Let price bounce off L2/L3, then buy the 62%–79% pullback right at the 0.705 Optimal Trade Entry price with a hard -25% stop-loss.</div>
-      </div>
-      <div class="step-item">
-        <div class="step-title">Step 4: Take Profit at -2.0 STDV / H1–H2 in 30 to 45 Minutes</div>
-        <div class="step-desc">Just like the video's +200% QQQ Call in 30 minutes, scale out at -1.0 STDV and lock in full profits at -2.0 to -2.5 STDV before hourly Theta decay melts your option.</div>
-      </div>
-    </div>
     </details>
     <div class="s-footer">For learning only, not financial advice. 0DTE options can lose 100% fast.</div>
   </div>
 
   <script>
+    const __dummy = () => { const d = document.createElement("div"); d.value = ""; return d; };
+    function gid(id) { return document.getElementById(id) || __dummy(); }
     const TICKER_DB = {"SPY":{"p":769.53,"iv":12,"ivr":22,"s":0.02,"oi":68500,"n":"State Street SPDR S&P 50","chg1d":0.54,"chg5d":0.06,"e9":767.58,"e21":768.63,"e50":766.23,"rsi":44,"rvol":0.5,"sup":758.68,"res":776.35},"QQQ":{"p":720.79,"iv":22,"ivr":36,"s":0.03,"oi":54000,"n":"Invesco QQQ Trust, Serie","chg1d":1.21,"chg5d":0.44,"e9":718.59,"e21":725.45,"e50":725.1,"rsi":33,"rvol":0.5,"sup":701.16,"res":740.53},"IWM":{"p":279.89,"iv":17,"ivr":29,"s":0.03,"oi":32400,"n":"iShares Russell 2000 Ind","chg1d":1.05,"chg5d":1.49,"e9":276.66,"e21":278.05,"e50":282.96,"rsi":54,"rvol":0.5,"sup":269.88,"res":280.04},"DIA":{"p":523.22,"iv":12,"ivr":17,"s":0.15,"oi":4800,"n":"State Street SPDR Dow Jo","chg1d":0.05,"chg5d":-0.22,"e9":522.24,"e21":520.29,"e50":520.95,"rsi":68,"rvol":0.5,"sup":512.96,"res":528.45},"TQQQ":{"p":70.92,"iv":68,"ivr":37,"s":0.03,"oi":28500,"n":"ProShares UltraPro QQQ","chg1d":3.64,"chg5d":0.72,"e9":70.64,"e21":73.11,"e50":73.82,"rsi":31,"rvol":0.69,"sup":65.37,"res":77.79},"SQQQ":{"p":37.01,"iv":65,"ivr":33,"s":0.03,"oi":28500,"n":"ProShares UltraPro Short","chg1d":-3.57,"chg5d":-1.78,"e9":37.49,"e21":36.61,"e50":37.0,"rsi":65,"rvol":0.61,"sup":34.42,"res":40.23},"SOXL":{"p":100.31,"iv":145,"ivr":32,"s":0.03,"oi":28500,"n":"Direxion Daily Semicondu","chg1d":10.84,"chg5d":2.83,"e9":99.48,"e21":112.61,"e50":125.7,"rsi":25,"rvol":0.86,"sup":80.22,"res":120.9},"ARKK":{"p":84.79,"iv":43,"ivr":58,"s":0.08,"oi":4800,"n":"ARK Innovation ETF","chg1d":3.6,"chg5d":1.64,"e9":83.81,"e21":85.28,"e50":84.86,"rsi":43,"rvol":0.61,"sup":80.7,"res":86.47},"NVDA":{"p":217.79,"iv":35,"ivr":34,"s":0.02,"oi":48500,"n":"NVIDIA","chg1d":0.83,"chg5d":0.61,"e9":217.56,"e21":220.85,"e50":220.55,"rsi":32,"rvol":0.5,"sup":210.18,"res":226.0},"TSLA":{"p":406.22,"iv":44,"ivr":19,"s":0.05,"oi":42500,"n":"Tesla","chg1d":3.73,"chg5d":8.7,"e9":382.55,"e21":375.72,"e50":369.25,"rsi":62,"rvol":0.81,"sup":349.33,"res":407.5},"AAPL":{"p":345.41,"iv":15,"ivr":12,"s":0.03,"oi":34500,"n":"Apple","chg1d":0.44,"chg5d":1.74,"e9":344.04,"e21":340.52,"e50":333.03,"rsi":63,"rvol":0.5,"sup":338.7,"res":351.73},"MSFT":{"p":532.35,"iv":23,"ivr":13,"s":0.1,"oi":12400,"n":"Microsoft","chg1d":-0.05,"chg5d":0.09,"e9":530.18,"e21":525.95,"e50":507.11,"rsi":52,"rvol":0.5,"sup":515.7,"res":545.75},"AMZN":{"p":253.2,"iv":38,"ivr":35,"s":0.03,"oi":28500,"n":"Amazon.com","chg1d":1.65,"chg5d":-3.59,"e9":253.72,"e21":254.43,"e50":254.33,"rsi":44,"rvol":0.5,"sup":246.45,"res":265.34},"META":{"p":623.46,"iv":43,"ivr":50,"s":0.1,"oi":12400,"n":"Meta Platforms","chg1d":-1.13,"chg5d":-10.2,"e9":667.39,"e21":688.43,"e50":674.02,"rsi":25,"rvol":1.41,"sup":621.36,"res":761.5},"GOOGL":{"p":321.17,"iv":25,"ivr":19,"s":0.1,"oi":12400,"n":"Alphabet","chg1d":1.38,"chg5d":-5.62,"e9":329.69,"e21":337.04,"e50":342.1,"rsi":25,"rvol":0.63,"sup":316.6,"res":359.4},"GOOG":{"p":317.62,"iv":24,"ivr":17,"s":0.1,"oi":12400,"n":"Alphabet","chg1d":1.09,"chg5d":-5.58,"e9":326.27,"e21":333.54,"e50":338.88,"rsi":23,"rvol":0.56,"sup":313.51,"res":355.25},"AMD":{"p":559.21,"iv":65,"ivr":32,"s":0.08,"oi":22400,"n":"Advanced Micro Devices","chg1d":5.26,"chg5d":4.58,"e9":546.04,"e21":560.58,"e50":551.34,"rsi":34,"rvol":0.64,"sup":502.6,"res":591.88},"NFLX":{"p":62.56,"iv":41,"ivr":44,"s":0.03,"oi":28500,"n":"Netflix","chg1d":-2.1,"chg5d":-8.92,"e9":66.33,"e21":68.71,"e50":71.58,"rsi":32,"rvol":0.57,"sup":62.53,"res":73.07},"AVGO":{"p":342.55,"iv":49,"ivr":25,"s":0.1,"oi":12400,"n":"Broadcom","chg1d":4.06,"chg5d":2.45,"e9":335.84,"e21":343.11,"e50":355.26,"rsi":33,"rvol":0.62,"sup":320.23,"res":354.25},"PLTR":{"p":199.5,"iv":52,"ivr":26,"s":0.05,"oi":12400,"n":"Palantir Technologies","chg1d":0.33,"chg5d":3.58,"e9":197.76,"e21":195.08,"e50":184.26,"rsi":54,"rvol":0.5,"sup":184.45,"res":209.29},"COIN":{"p":160.35,"iv":62,"ivr":19,"s":0.08,"oi":4800,"n":"Coinbase Global","chg1d":0.47,"chg5d":-6.15,"e9":168.17,"e21":174.52,"e50":175.17,"rsi":38,"rvol":0.5,"sup":155.31,"res":185.49},"MSTR":{"p":140.87,"iv":81,"ivr":23,"s":0.05,"oi":12400,"n":"Strategy Inc","chg1d":0.75,"chg5d":-1.3,"e9":144.57,"e21":146.88,"e50":139.81,"rsi":41,"rvol":0.5,"sup":133.6,"res":155.69},"SOFI":{"p":16.66,"iv":75,"ivr":61,"s":0.03,"oi":28500,"n":"SoFi Technologies","chg1d":15.21,"chg5d":13.49,"e9":15.14,"e21":15.41,"e50":16.15,"rsi":57,"rvol":2.65,"sup":13.86,"res":16.76},"HOOD":{"p":96.15,"iv":60,"ivr":18,"s":0.05,"oi":12400,"n":"Robinhood Markets","chg1d":3.57,"chg5d":-2.1,"e9":98.27,"e21":103.32,"e50":105.42,"rsi":35,"rvol":0.52,"sup":91.63,"res":109.22},"SMCI":{"p":35.12,"iv":88,"ivr":28,"s":0.03,"oi":28500,"n":"Super Micro Computer","chg1d":7.43,"chg5d":8.16,"e9":34.57,"e21":36.58,"e50":37.11,"rsi":28,"rvol":0.57,"sup":30.92,"res":38.02},"ARM":{"p":225.91,"iv":72,"ivr":35,"s":0.08,"oi":4800,"n":"Arm Holdings plc","chg1d":1.15,"chg5d":2.19,"e9":228.36,"e21":245.37,"e50":261.86,"rsi":23,"rvol":0.5,"sup":208.3,"res":250.2},"MU":{"p":931.73,"iv":61,"ivr":10,"s":0.1,"oi":12400,"n":"Micron Technology","chg1d":3.1,"chg5d":3.98,"e9":914.74,"e21":948.98,"e50":965.56,"rsi":32,"rvol":0.5,"sup":849.25,"res":949.42},"INTC":{"p":93.85,"iv":64,"ivr":23,"s":0.03,"oi":28500,"n":"Intel","chg1d":3.74,"chg5d":2.36,"e9":92.9,"e21":98.29,"e50":101.8,"rsi":29,"rvol":0.58,"sup":84.65,"res":101.34},"ORCL":{"p":131.66,"iv":64,"ivr":34,"s":0.05,"oi":12400,"n":"Oracle","chg1d":4.44,"chg5d":0.4,"e9":129.97,"e21":134.06,"e50":140.23,"rsi":40,"rvol":0.5,"sup":122.76,"res":141.05},"CRM":{"p":242.04,"iv":36,"ivr":12,"s":0.08,"oi":4800,"n":"Salesforce","chg1d":-2.25,"chg5d":-0.16,"e9":243.48,"e21":240.09,"e50":230.75,"rsi":67,"rvol":0.5,"sup":233.59,"res":252.42},"SNOW":{"p":339.49,"iv":65,"ivr":31,"s":0.15,"oi":4800,"n":"Snowflake","chg1d":1.36,"chg5d":6.22,"e9":329.83,"e21":331.82,"e50":326.03,"rsi":52,"rvol":0.5,"sup":302.24,"res":356.84},"SHOP":{"p":166.45,"iv":48,"ivr":17,"s":0.08,"oi":4800,"n":"Shopify","chg1d":-1.03,"chg5d":-4.05,"e9":169.26,"e21":164.99,"e50":154.04,"rsi":50,"rvol":0.5,"sup":163.25,"res":180.41},"UBER":{"p":65.87,"iv":32,"ivr":28,"s":0.05,"oi":12400,"n":"Uber Technologies","chg1d":-0.39,"chg5d":-4.45,"e9":67.83,"e21":69.1,"e50":70.57,"rsi":42,"rvol":0.77,"sup":65.47,"res":71.86},"ABNB":{"p":168.49,"iv":30,"ivr":19,"s":0.08,"oi":4800,"n":"Airbnb","chg1d":-1.5,"chg5d":-4.78,"e9":171.17,"e21":169.53,"e50":167.1,"rsi":61,"rvol":0.5,"sup":163.82,"res":179.13},"DIS":{"p":109.7,"iv":24,"ivr":25,"s":0.08,"oi":4800,"n":"Walt Disney Company (The","chg1d":-0.63,"chg5d":-1.76,"e9":110.52,"e21":109.06,"e50":106.72,"rsi":68,"rvol":0.5,"sup":107.65,"res":113.38},"NKE":{"p":37.39,"iv":35,"ivr":21,"s":0.03,"oi":28500,"n":"Nike","chg1d":-1.37,"chg5d":-1.29,"e9":37.26,"e21":36.71,"e50":37.43,"rsi":72,"rvol":0.5,"sup":34.71,"res":38.5},"BA":{"p":171.45,"iv":48,"ivr":89,"s":0.08,"oi":4800,"n":"Boeing Company (The)","chg1d":-8.95,"chg5d":-9.99,"e9":185.63,"e21":189.34,"e50":197.61,"rsi":29,"rvol":3.5,"sup":168.42,"res":193.28},"F":{"p":11.69,"iv":26,"ivr":8,"s":0.03,"oi":28500,"n":"Ford Motor Company","chg1d":0.95,"chg5d":-3.79,"e9":11.87,"e21":12.17,"e50":12.79,"rsi":39,"rvol":0.5,"sup":11.44,"res":12.78},"GM":{"p":80.53,"iv":50,"ivr":89,"s":0.08,"oi":4800,"n":"General Motors Company","chg1d":5.53,"chg5d":4.46,"e9":78.93,"e21":80.34,"e50":81.91,"rsi":49,"rvol":0.91,"sup":74.59,"res":85.79},"RIVN":{"p":11.61,"iv":34,"ivr":8,"s":0.05,"oi":12400,"n":"Rivian Automotive","chg1d":1.57,"chg5d":-6.6,"e9":12.2,"e21":13.11,"e50":14.27,"rsi":11,"rvol":0.54,"sup":11.42,"res":13.31},"LCID":{"p":3.3,"iv":86,"ivr":21,"s":0.05,"oi":12400,"n":"Lucid Group","chg1d":-2.94,"chg5d":0.92,"e9":3.39,"e21":3.6,"e50":4.21,"rsi":35,"rvol":0.5,"sup":2.85,"res":3.61},"NIO":{"p":3.27,"iv":43,"ivr":15,"s":0.05,"oi":12400,"n":"NIO","chg1d":0.31,"chg5d":-4.66,"e9":3.34,"e21":3.44,"e50":3.73,"rsi":37,"rvol":0.5,"sup":3.22,"res":3.55},"JPM":{"p":336.77,"iv":16,"ivr":8,"s":0.15,"oi":4800,"n":"JP Morgan Chase & Co.","chg1d":0.82,"chg5d":0.45,"e9":334.86,"e21":336.22,"e50":340.06,"rsi":60,"rvol":0.5,"sup":326.4,"res":344.4},"BAC":{"p":50.72,"iv":24,"ivr":40,"s":0.03,"oi":28500,"n":"Bank of America","chg1d":0.4,"chg5d":0.16,"e9":51.14,"e21":52.74,"e50":55.55,"rsi":31,"rvol":0.5,"sup":49.26,"res":52.64},"GS":{"p":912.55,"iv":24,"ivr":13,"s":0.15,"oi":1450,"n":"Goldman Sachs Group (The","chg1d":2.16,"chg5d":3.14,"e9":893.52,"e21":903.15,"e50":940.94,"rsi":58,"rvol":0.5,"sup":859.03,"res":915.42},"MS":{"p":187.43,"iv":32,"ivr":39,"s":0.08,"oi":4800,"n":"Morgan Stanley","chg1d":2.15,"chg5d":3.9,"e9":184.08,"e21":187.49,"e50":196.0,"rsi":47,"rvol":0.5,"sup":176.44,"res":189.12},"C":{"p":122.79,"iv":32,"ivr":39,"s":0.08,"oi":4800,"n":"Citigroup","chg1d":1.45,"chg5d":0.23,"e9":122.9,"e21":125.43,"e50":129.13,"rsi":41,"rvol":0.5,"sup":119.98,"res":127.22},"WFC":{"p":82.82,"iv":25,"ivr":31,"s":0.05,"oi":12400,"n":"Wells Fargo & Company","chg1d":0.21,"chg5d":0.75,"e9":82.5,"e21":82.66,"e50":83.76,"rsi":59,"rvol":0.5,"sup":78.04,"res":84.72},"V":{"p":400.4,"iv":24,"ivr":33,"s":0.15,"oi":4800,"n":"Visa","chg1d":-0.93,"chg5d":-1.52,"e9":402.12,"e21":392.95,"e50":380.24,"rsi":72,"rvol":0.62,"sup":389.56,"res":414.6},"MA":{"p":608.73,"iv":24,"ivr":32,"s":0.15,"oi":4800,"n":"Mastercard Incorporated","chg1d":-0.78,"chg5d":-1.88,"e9":613.68,"e21":601.29,"e50":583.3,"rsi":71,"rvol":0.54,"sup":600.65,"res":633.29},"PYPL":{"p":55.9,"iv":27,"ivr":10,"s":0.05,"oi":12400,"n":"PayPal Holdings","chg1d":1.65,"chg5d":-2.17,"e9":56.27,"e21":55.85,"e50":55.05,"rsi":56,"rvol":1.21,"sup":54.34,"res":57.95},"AXP":{"p":314.64,"iv":22,"ivr":18,"s":0.15,"oi":4800,"n":"American Express Company","chg1d":-0.13,"chg5d":-1.16,"e9":315.61,"e21":314.07,"e50":317.91,"rsi":62,"rvol":0.5,"sup":304.88,"res":326.27},"BRK.B":{"p":545.46,"iv":13,"ivr":17,"s":0.15,"oi":4800,"n":"Berkshire Hathaway New","chg1d":-0.57,"chg5d":1.04,"e9":538.74,"e21":527.81,"e50":516.95,"rsi":84,"rvol":0.5,"sup":518.19,"res":549.96},"XOM":{"p":181.02,"iv":23,"ivr":16,"s":0.05,"oi":12400,"n":"ExxonMobil Holdings","chg1d":-1.91,"chg5d":1.78,"e9":179.2,"e21":174.26,"e50":167.52,"rsi":77,"rvol":0.58,"sup":173.6,"res":184.88},"CVX":{"p":228.46,"iv":24,"ivr":34,"s":0.08,"oi":4800,"n":"Chevron","chg1d":-1.53,"chg5d":1.22,"e9":226.44,"e21":220.23,"e50":211.75,"rsi":79,"rvol":0.5,"sup":218.05,"res":234.08},"OXY":{"p":62.96,"iv":29,"ivr":18,"s":0.08,"oi":4800,"n":"Occidental Petroleum Cor","chg1d":-1.73,"chg5d":0.06,"e9":62.7,"e21":61.37,"e50":59.83,"rsi":73,"rvol":0.5,"sup":60.28,"res":64.96},"SLB":{"p":53.6,"iv":43,"ivr":53,"s":0.05,"oi":12400,"n":"SLB Limited","chg1d":0.98,"chg5d":7.24,"e9":51.4,"e21":50.85,"e50":51.31,"rsi":76,"rvol":0.5,"sup":47.17,"res":54.15},"LLY":{"p":1281.93,"iv":35,"ivr":33,"s":0.15,"oi":1450,"n":"Eli Lilly and Company","chg1d":0.22,"chg5d":-0.13,"e9":1263.87,"e21":1230.59,"e50":1200.86,"rsi":66,"rvol":0.5,"sup":1174.24,"res":1321.21},"UNH":{"p":410.68,"iv":34,"ivr":18,"s":0.15,"oi":4800,"n":"UnitedHealth Group Incor","chg1d":-0.0,"chg5d":-2.05,"e9":409.31,"e21":398.97,"e50":394.83,"rsi":69,"rvol":0.5,"sup":382.29,"res":426.55},"JNJ":{"p":267.98,"iv":37,"ivr":95,"s":0.08,"oi":4800,"n":"Johnson & Johnson","chg1d":0.63,"chg5d":3.32,"e9":262.56,"e21":261.66,"e50":261.7,"rsi":58,"rvol":0.5,"sup":248.5,"res":272.36},"PFE":{"p":29.72,"iv":24,"ivr":54,"s":0.05,"oi":12400,"n":"Pfizer","chg1d":-0.23,"chg5d":-1.3,"e9":29.67,"e21":29.15,"e50":28.3,"rsi":70,"rvol":0.5,"sup":28.55,"res":30.44},"MRK":{"p":142.09,"iv":37,"ivr":50,"s":0.08,"oi":4800,"n":"Merck & Company","chg1d":1.05,"chg5d":-4.19,"e9":144.52,"e21":145.3,"e50":143.4,"rsi":49,"rvol":0.5,"sup":139.83,"res":154.02},"ABBV":{"p":286.83,"iv":24,"ivr":35,"s":0.08,"oi":4800,"n":"AbbVie","chg1d":0.03,"chg5d":-0.78,"e9":284.4,"e21":278.71,"e50":269.15,"rsi":68,"rvol":0.5,"sup":275.97,"res":291.4},"MRNA":{"p":200.29,"iv":127,"ivr":19,"s":0.05,"oi":12400,"n":"Moderna","chg1d":0.72,"chg5d":-17.26,"e9":211.36,"e21":206.54,"e50":175.14,"rsi":51,"rvol":0.58,"sup":179.53,"res":254.48},"COST":{"p":991.53,"iv":20,"ivr":28,"s":0.15,"oi":1450,"n":"Costco Wholesale","chg1d":-1.36,"chg5d":-0.31,"e9":992.73,"e21":971.69,"e50":952.75,"rsi":69,"rvol":0.5,"sup":960.0,"res":1021.45},"WMT":{"p":118.81,"iv":27,"ivr":28,"s":0.05,"oi":12400,"n":"Walmart","chg1d":-1.23,"chg5d":0.81,"e9":118.21,"e21":114.86,"e50":112.28,"rsi":77,"rvol":0.5,"sup":113.38,"res":122.4},"TGT":{"p":148.14,"iv":32,"ivr":35,"s":0.08,"oi":4800,"n":"Target","chg1d":-0.26,"chg5d":-3.81,"e9":152.16,"e21":153.9,"e50":153.43,"rsi":46,"rvol":0.5,"sup":147.15,"res":159.56},"HD":{"p":318.69,"iv":33,"ivr":64,"s":0.15,"oi":4800,"n":"Home Depot (The)","chg1d":-0.22,"chg5d":1.14,"e9":314.38,"e21":307.6,"e50":310.08,"rsi":76,"rvol":0.5,"sup":289.57,"res":327.92},"LOW":{"p":197.15,"iv":36,"ivr":74,"s":0.08,"oi":4800,"n":"Lowe's Companies","chg1d":-0.54,"chg5d":-0.7,"e9":196.75,"e21":194.27,"e50":197.03,"rsi":68,"rvol":0.5,"sup":184.89,"res":204.52},"SBUX":{"p":102.65,"iv":31,"ivr":45,"s":0.08,"oi":4800,"n":"Starbucks","chg1d":-0.04,"chg5d":3.3,"e9":99.9,"e21":98.09,"e50":98.76,"rsi":75,"rvol":0.5,"sup":91.31,"res":103.4},"MCD":{"p":249.33,"iv":21,"ivr":34,"s":0.08,"oi":4800,"n":"McDonald's","chg1d":-0.6,"chg5d":1.14,"e9":246.65,"e21":244.08,"e50":248.82,"rsi":77,"rvol":0.5,"sup":234.23,"res":252.88},"KO":{"p":91.88,"iv":25,"ivr":48,"s":0.05,"oi":12400,"n":"Coca-Cola Company (The)","chg1d":-0.88,"chg5d":-1.72,"e9":92.4,"e21":91.02,"e50":89.12,"rsi":69,"rvol":0.53,"sup":90.55,"res":95.37},"PEP":{"p":132.94,"iv":30,"ivr":70,"s":0.08,"oi":4800,"n":"Pepsico","chg1d":-1.86,"chg5d":-0.81,"e9":133.58,"e21":132.05,"e50":133.24,"rsi":67,"rvol":0.5,"sup":127.2,"res":139.0},"PG":{"p":158.91,"iv":33,"ivr":95,"s":0.08,"oi":4800,"n":"Procter & Gamble Company","chg1d":-0.63,"chg5d":-0.26,"e9":158.76,"e21":155.17,"e50":151.2,"rsi":67,"rvol":0.5,"sup":154.29,"res":166.85},"GME":{"p":23.42,"iv":49,"ivr":53,"s":0.05,"oi":12400,"n":"GameStop","chg1d":-2.01,"chg5d":-11.52,"e9":25.13,"e21":25.03,"e50":23.61,"rsi":43,"rvol":0.5,"sup":23.36,"res":28.3},"AMC":{"p":2.98,"iv":65,"ivr":16,"s":0.05,"oi":12400,"n":"AMC Entertainment Holdin","chg1d":3.11,"chg5d":-3.25,"e9":2.95,"e21":2.93,"e50":2.79,"rsi":55,"rvol":0.5,"sup":2.78,"res":3.11},"DJT":{"p":6.39,"iv":60,"ivr":16,"s":0.08,"oi":4800,"n":"Trump Media & Technology","chg1d":4.07,"chg5d":-1.24,"e9":6.69,"e21":7.37,"e50":8.08,"rsi":21,"rvol":0.59,"sup":6.04,"res":7.64},"RDDT":{"p":139.17,"iv":55,"ivr":15,"s":0.08,"oi":4800,"n":"Reddit","chg1d":0.52,"chg5d":-10.59,"e9":147.19,"e21":150.38,"e50":154.29,"rsi":37,"rvol":0.7,"sup":133.33,"res":164.94},"RBLX":{"p":54.47,"iv":50,"ivr":13,"s":0.08,"oi":4800,"n":"Roblox","chg1d":0.18,"chg5d":4.05,"e9":52.42,"e21":49.98,"e50":47.41,"rsi":71,"rvol":0.5,"sup":47.0,"res":54.76},"DKNG":{"p":20.59,"iv":53,"ivr":37,"s":0.05,"oi":12400,"n":"DraftKings","chg1d":-2.97,"chg5d":0.54,"e9":20.46,"e21":20.5,"e50":21.61,"rsi":62,"rvol":0.5,"sup":18.35,"res":21.27},"SPOT":{"p":557.26,"iv":56,"ivr":38,"s":0.15,"oi":1450,"n":"Spotify Technology S.A.","chg1d":-2.64,"chg5d":5.93,"e9":551.76,"e21":536.74,"e50":524.2,"rsi":66,"rvol":0.52,"sup":508.01,"res":593.8},"SNAP":{"p":6.16,"iv":59,"ivr":37,"s":0.03,"oi":28500,"n":"Snap","chg1d":-2.84,"chg5d":-3.45,"e9":6.26,"e21":6.11,"e50":5.8,"rsi":58,"rvol":0.59,"sup":5.87,"res":6.59},"PINS":{"p":20.77,"iv":51,"ivr":31,"s":0.05,"oi":12400,"n":"Pinterest","chg1d":-2.17,"chg5d":-9.62,"e9":21.81,"e21":21.38,"e50":21.17,"rsi":53,"rvol":0.5,"sup":20.36,"res":23.6},"DASH":{"p":173.57,"iv":53,"ivr":35,"s":0.08,"oi":4800,"n":"DoorDash","chg1d":3.05,"chg5d":-9.44,"e9":181.45,"e21":187.32,"e50":192.48,"rsi":37,"rvol":1.11,"sup":163.68,"res":197.24},"LYFT":{"p":16.92,"iv":35,"ivr":13,"s":0.08,"oi":4800,"n":"Lyft","chg1d":-0.82,"chg5d":-1.91,"e9":16.89,"e21":16.53,"e50":16.18,"rsi":65,"rvol":0.5,"sup":15.93,"res":17.54},"BABA":{"p":99.46,"iv":39,"ivr":34,"s":0.08,"oi":4800,"n":"Alibaba Group Holding Li","chg1d":-0.79,"chg5d":-8.42,"e9":103.51,"e21":106.47,"e50":110.06,"rsi":32,"rvol":0.5,"sup":99.19,"res":112.73},"JD":{"p":25.33,"iv":28,"ivr":37,"s":0.08,"oi":4800,"n":"JD.com","chg1d":0.36,"chg5d":-5.34,"e9":25.89,"e21":26.36,"e50":27.18,"rsi":28,"rvol":0.5,"sup":25.06,"res":27.47},"PDD":{"p":77.79,"iv":31,"ivr":17,"s":0.08,"oi":4800,"n":"PDD Holdings","chg1d":-0.44,"chg5d":-4.7,"e9":79.25,"e21":79.61,"e50":80.74,"rsi":47,"rvol":0.5,"sup":77.23,"res":82.88},"TSM":{"p":436.93,"iv":41,"ivr":28,"s":0.1,"oi":12400,"n":"Taiwan Semiconductor Man","chg1d":2.96,"chg5d":2.79,"e9":428.4,"e21":434.63,"e50":434.44,"rsi":36,"rvol":0.5,"sup":407.13,"res":440.39},"ASML":{"p":1634.38,"iv":43,"ivr":20,"s":0.15,"oi":1450,"n":"ASML Holding N.V. - New","chg1d":2.73,"chg5d":0.22,"e9":1632.38,"e21":1675.59,"e50":1706.34,"rsi":31,"rvol":0.5,"sup":1550.0,"res":1734.5},"QCOM":{"p":181.18,"iv":34,"ivr":12,"s":0.08,"oi":4800,"n":"QUALCOMM Incorporated","chg1d":0.88,"chg5d":3.11,"e9":177.46,"e21":178.01,"e50":178.39,"rsi":55,"rvol":0.5,"sup":168.84,"res":182.48},"TXN":{"p":307.12,"iv":38,"ivr":31,"s":0.15,"oi":4800,"n":"Texas Instruments Incorp","chg1d":3.02,"chg5d":10.56,"e9":289.39,"e21":284.1,"e50":280.01,"rsi":64,"rvol":0.5,"sup":272.01,"res":308.03},"AMAT":{"p":395.99,"iv":58,"ivr":27,"s":0.15,"oi":4800,"n":"Applied Materials","chg1d":2.17,"chg5d":-2.22,"e9":407.1,"e21":436.29,"e50":464.32,"rsi":16,"rvol":0.5,"sup":372.8,"res":459.48},"LRCX":{"p":240.31,"iv":68,"ivr":25,"s":0.08,"oi":4800,"n":"Lam Research","chg1d":1.18,"chg5d":-8.78,"e9":254.3,"e21":276.56,"e50":294.5,"rsi":15,"rvol":0.52,"sup":225.14,"res":295.86},"KLAC":{"p":153.24,"iv":58,"ivr":20,"s":0.05,"oi":12400,"n":"KLA","chg1d":2.7,"chg5d":-5.26,"e9":159.37,"e21":170.67,"e50":181.37,"rsi":16,"rvol":0.5,"sup":144.82,"res":184.58},"MRVL":{"p":242.33,"iv":73,"ivr":26,"s":0.05,"oi":12400,"n":"Marvell Technology","chg1d":3.66,"chg5d":0.79,"e9":239.62,"e21":246.14,"e50":244.18,"rsi":32,"rvol":0.5,"sup":220.21,"res":264.3},"CRWD":{"p":268.16,"iv":66,"ivr":44,"s":0.08,"oi":4800,"n":"CrowdStrike Holdings","chg1d":2.42,"chg5d":17.94,"e9":252.33,"e21":250.19,"e50":238.94,"rsi":51,"rvol":0.5,"sup":221.36,"res":271.03},"PANW":{"p":402.36,"iv":66,"ivr":61,"s":0.15,"oi":4800,"n":"Palo Alto Networks","chg1d":3.05,"chg5d":18.24,"e9":377.06,"e21":377.11,"e50":370.33,"rsi":49,"rvol":0.5,"sup":334.75,"res":404.77},"ZS":{"p":261.35,"iv":65,"ivr":26,"s":0.15,"oi":1450,"n":"Zscaler","chg1d":0.35,"chg5d":21.84,"e9":240.57,"e21":225.26,"e50":204.43,"rsi":72,"rvol":0.52,"sup":203.33,"res":267.87},"DDOG":{"p":279.61,"iv":71,"ivr":44,"s":0.15,"oi":1450,"n":"Datadog","chg1d":-0.22,"chg5d":9.04,"e9":271.02,"e21":266.84,"e50":258.37,"rsi":53,"rvol":0.5,"sup":243.63,"res":284.82},"NET":{"p":332.54,"iv":66,"ivr":31,"s":0.15,"oi":1450,"n":"Cloudflare","chg1d":0.2,"chg5d":14.0,"e9":321.68,"e21":325.24,"e50":318.74,"rsi":46,"rvol":0.5,"sup":285.05,"res":346.79},"MDB":{"p":391.44,"iv":71,"ivr":38,"s":0.15,"oi":1450,"n":"MongoDB","chg1d":0.6,"chg5d":6.9,"e9":375.56,"e21":373.29,"e50":375.74,"rsi":57,"rvol":0.5,"sup":328.15,"res":394.0},"NOW":{"p":155.48,"iv":42,"ivr":20,"s":0.05,"oi":12400,"n":"ServiceNow","chg1d":-1.71,"chg5d":3.97,"e9":152.36,"e21":146.49,"e50":138.23,"rsi":71,"rvol":0.61,"sup":138.39,"res":159.5},"ADBE":{"p":250.26,"iv":48,"ivr":51,"s":0.08,"oi":4800,"n":"Adobe","chg1d":-3.23,"chg5d":-2.52,"e9":254.34,"e21":250.65,"e50":249.95,"rsi":60,"rvol":0.55,"sup":235.9,"res":272.1},"INTU":{"p":326.18,"iv":48,"ivr":24,"s":0.15,"oi":4800,"n":"Intuit","chg1d":-4.03,"chg5d":-2.72,"e9":331.28,"e21":320.9,"e50":315.49,"rsi":63,"rvol":0.5,"sup":298.83,"res":358.03},"IBM":{"p":250.31,"iv":28,"ivr":12,"s":0.08,"oi":4800,"n":"International Business M","chg1d":-1.24,"chg5d":3.47,"e9":245.72,"e21":238.65,"e50":236.79,"rsi":82,"rvol":0.5,"sup":226.01,"res":256.3},"DELL":{"p":504.89,"iv":83,"ivr":42,"s":0.15,"oi":4800,"n":"Dell Technologies","chg1d":8.09,"chg5d":9.39,"e9":484.07,"e21":504.02,"e50":503.17,"rsi":36,"rvol":0.66,"sup":439.5,"res":548.39},"HPQ":{"p":33.87,"iv":52,"ivr":35,"s":0.05,"oi":12400,"n":"HP","chg1d":-0.65,"chg5d":8.52,"e9":32.64,"e21":32.02,"e50":31.13,"rsi":59,"rvol":0.5,"sup":29.84,"res":34.27},"CAT":{"p":711.55,"iv":45,"ivr":42,"s":0.15,"oi":1450,"n":"Caterpillar","chg1d":2.81,"chg5d":-1.89,"e9":721.37,"e21":752.77,"e50":791.43,"rsi":23,"rvol":0.5,"sup":679.5,"res":770.35},"DE":{"p":640.55,"iv":35,"ivr":43,"s":0.15,"oi":1450,"n":"Deere & Company","chg1d":-0.11,"chg5d":1.32,"e9":642.41,"e21":650.21,"e50":650.33,"rsi":43,"rvol":0.5,"sup":625.81,"res":660.39},"GE":{"p":297.42,"iv":28,"ivr":18,"s":0.08,"oi":4800,"n":"GE Aerospace","chg1d":3.12,"chg5d":-0.82,"e9":297.52,"e21":304.56,"e50":317.82,"rsi":44,"rvol":0.76,"sup":278.37,"res":321.17},"LMT":{"p":628.55,"iv":41,"ivr":72,"s":0.15,"oi":1450,"n":"Lockheed Martin","chg1d":-1.05,"chg5d":14.55,"e9":584.62,"e21":556.18,"e50":545.42,"rsi":89,"rvol":0.76,"sup":508.01,"res":636.56},"RTX":{"p":196.18,"iv":29,"ivr":60,"s":0.08,"oi":4800,"n":"RTX","chg1d":-0.66,"chg5d":1.47,"e9":192.92,"e21":191.35,"e50":194.16,"rsi":70,"rvol":0.5,"sup":183.67,"res":198.19},"NOC":{"p":556.88,"iv":40,"ivr":85,"s":0.15,"oi":1450,"n":"Northrop Grumman","chg1d":-1.51,"chg5d":4.28,"e9":538.82,"e21":522.21,"e50":521.91,"rsi":81,"rvol":0.5,"sup":483.24,"res":566.56},"GD":{"p":356.79,"iv":18,"ivr":13,"s":0.15,"oi":1450,"n":"General Dynamics","chg1d":-0.07,"chg5d":3.59,"e9":348.26,"e21":344.52,"e50":350.25,"rsi":83,"rvol":0.5,"sup":333.36,"res":357.46},"DAL":{"p":80.6,"iv":37,"ivr":30,"s":0.08,"oi":4800,"n":"Delta Air Lines","chg1d":1.82,"chg5d":5.14,"e9":78.65,"e21":79.44,"e50":81.07,"rsi":45,"rvol":0.5,"sup":74.14,"res":80.74},"UAL":{"p":103.41,"iv":48,"ivr":35,"s":0.08,"oi":4800,"n":"United Airlines Holdings","chg1d":2.7,"chg5d":5.77,"e9":101.17,"e21":103.57,"e50":108.11,"rsi":40,"rvol":0.5,"sup":94.54,"res":104.98},"AAL":{"p":12.55,"iv":47,"ivr":41,"s":0.03,"oi":28500,"n":"American Airlines Group","chg1d":2.87,"chg5d":3.63,"e9":12.32,"e21":12.52,"e50":13.11,"rsi":46,"rvol":0.59,"sup":11.63,"res":12.73},"CCL":{"p":27.99,"iv":42,"ivr":24,"s":0.05,"oi":12400,"n":"Carnival Ltd.","chg1d":4.21,"chg5d":3.44,"e9":26.86,"e21":26.1,"e50":25.63,"rsi":63,"rvol":0.54,"sup":25.76,"res":28.08},"GLD":{"p":372.2,"iv":20,"ivr":17,"s":0.15,"oi":4800,"n":"SPDR Gold Shares","chg1d":1.19,"chg5d":-1.44,"e9":373.67,"e21":379.28,"e50":385.41,"rsi":46,"rvol":0.5,"sup":364.33,"res":384.88},"SLV":{"p":49.13,"iv":43,"ivr":8,"s":0.05,"oi":12400,"n":"iShares Silver Trust","chg1d":0.97,"chg5d":-5.74,"e9":50.41,"e21":52.48,"e50":54.74,"rsi":32,"rvol":0.5,"sup":47.86,"res":52.89},"USO":{"p":163.77,"iv":34,"ivr":13,"s":0.08,"oi":4800,"n":"United States Oil Fund","chg1d":-1.48,"chg5d":1.97,"e9":161.9,"e21":156.71,"e50":148.59,"rsi":78,"rvol":0.51,"sup":152.96,"res":169.96},"UNG":{"p":9.45,"iv":44,"ivr":12,"s":0.05,"oi":12400,"n":"United States Natural Ga","chg1d":-1.15,"chg5d":-10.0,"e9":10.01,"e21":10.33,"e50":10.47,"rsi":24,"rvol":0.66,"sup":9.31,"res":11.4},"TLT":{"p":81.63,"iv":12,"ivr":57,"s":0.03,"oi":28500,"n":"iShares 20+ Year Treasur","chg1d":-0.06,"chg5d":1.87,"e9":80.7,"e21":80.05,"e50":80.57,"rsi":84,"rvol":0.5,"sup":77.74,"res":81.92},"HYG":{"p":77.5,"iv":12,"ivr":32,"s":0.03,"oi":28500,"n":"iShares iBoxx $ High Yie","chg1d":0.39,"chg5d":0.87,"e9":77.15,"e21":77.3,"e50":77.93,"rsi":58,"rvol":0.5,"sup":76.71,"res":77.53},"XLF":{"p":55.95,"iv":14,"ivr":29,"s":0.03,"oi":28500,"n":"State Street Financial S","chg1d":-0.12,"chg5d":0.41,"e9":55.73,"e21":55.43,"e50":55.59,"rsi":69,"rvol":0.5,"sup":54.02,"res":56.67},"XLE":{"p":68.31,"iv":25,"ivr":44,"s":0.03,"oi":28500,"n":"State Street Energy Sele","chg1d":-1.91,"chg5d":0.5,"e9":68.06,"e21":66.62,"e50":64.48,"rsi":70,"rvol":0.58,"sup":66.17,"res":69.86},"XLK":{"p":189.42,"iv":29,"ivr":35,"s":0.08,"oi":4800,"n":"State Street Technology","chg1d":1.66,"chg5d":2.15,"e9":187.57,"e21":189.77,"e50":189.36,"rsi":35,"rvol":0.5,"sup":181.5,"res":194.66},"XLV":{"p":179.11,"iv":22,"ivr":72,"s":0.08,"oi":4800,"n":"State Street Health Care","chg1d":-0.09,"chg5d":-0.39,"e9":177.89,"e21":174.98,"e50":171.27,"rsi":70,"rvol":0.6,"sup":170.65,"res":182.25},"XBI":{"p":153.96,"iv":38,"ivr":67,"s":0.08,"oi":4800,"n":"State Street SPDR S&P Bi","chg1d":2.32,"chg5d":0.47,"e9":151.14,"e21":152.11,"e50":153.58,"rsi":55,"rvol":0.5,"sup":143.85,"res":155.78},"SMH":{"p":556.97,"iv":43,"ivr":30,"s":0.15,"oi":4800,"n":"VanEck Semiconductor ETF","chg1d":2.83,"chg5d":1.94,"e9":550.88,"e21":565.83,"e50":573.97,"rsi":30,"rvol":0.56,"sup":520.53,"res":580.08},"IBIT":{"p":45.69,"iv":28,"ivr":10,"s":0.03,"oi":28500,"n":"iShares Bitcoin Trust ET","chg1d":1.04,"chg5d":-2.18,"e9":46.19,"e21":46.43,"e50":44.77,"rsi":41,"rvol":0.5,"sup":44.86,"res":48.07},"ETHA":{"p":53.2,"iv":42,"ivr":9,"s":0.08,"oi":4800,"n":"iShares Ethereum Trust E","chg1d":1.64,"chg5d":-3.4,"e9":54.37,"e21":55.81,"e50":54.39,"rsi":34,"rvol":0.5,"sup":51.81,"res":57.11},"MARA":{"p":7.12,"iv":72,"ivr":16,"s":0.03,"oi":28500,"n":"MARA Holdings","chg1d":4.09,"chg5d":-4.81,"e9":7.59,"e21":8.77,"e50":10.04,"rsi":16,"rvol":0.69,"sup":6.62,"res":8.9},"RIOT":{"p":13.44,"iv":86,"ivr":32,"s":0.05,"oi":12400,"n":"Riot Platforms","chg1d":6.75,"chg5d":-2.4,"e9":13.86,"e21":15.87,"e50":18.3,"rsi":22,"rvol":0.66,"sup":11.79,"res":16.17},"CLSK":{"p":8.14,"iv":76,"ivr":14,"s":0.05,"oi":12400,"n":"CleanSpark","chg1d":4.76,"chg5d":-3.44,"e9":8.56,"e21":9.82,"e50":11.33,"rsi":17,"rvol":0.5,"sup":7.36,"res":9.81},"BRKB":{"p":545.46,"iv":13,"ivr":17,"s":0.15,"oi":4800,"n":"Berkshire Hathaway New","chg1d":-0.57,"chg5d":1.04,"e9":538.74,"e21":527.81,"e50":516.95,"rsi":84,"rvol":0.5,"sup":518.19,"res":549.96},"BRK-B":{"p":545.46,"iv":13,"ivr":17,"s":0.15,"oi":4800,"n":"Berkshire Hathaway New","chg1d":-0.57,"chg5d":1.04,"e9":538.74,"e21":527.81,"e50":516.95,"rsi":84,"rvol":0.5,"sup":518.19,"res":549.96}};
     let currentTicker = "QQQ";
     let currentType = "call";
@@ -841,18 +749,20 @@
     function renderAll(autoPickDir) {
       const { prof, sym } = getProfile(currentTicker);
       const brain = computeBrain(prof, currentFlow);
+      let SR = null;
+      try { SR = computeSR(sym, prof, brain); applySRToBrain(brain, SR, prof); } catch (e) { console.error(e); }
       if (autoPickDir) currentType = brain.rec;
 
-      document.getElementById("btnCall").className = "btn-seg " + (currentType === "call" ? "active-call" : "");
-      document.getElementById("btnCall").textContent = `BUY CALLS (${brain.callEdge}%)`;
-      document.getElementById("btnPut").className = "btn-seg " + (currentType === "put" ? "active-put" : "");
-      document.getElementById("btnPut").textContent = `BUY PUTS (${brain.putEdge}%)`;
+      gid("btnCall").className = "btn-seg " + (currentType === "call" ? "active-call" : "");
+      gid("btnCall").textContent = `BUY CALLS (${brain.callEdge}%)`;
+      gid("btnPut").className = "btn-seg " + (currentType === "put" ? "active-put" : "");
+      gid("btnPut").textContent = `BUY PUTS (${brain.putEdge}%)`;
 
       ["scalp_2dte", "zero_dte", "friday_5dte", "lotto_0dte"].forEach(m => {
-        document.getElementById("mode_" + m).className = "btn-seg " + (currentMode === m ? "active-mode" : "");
+        gid("mode_" + m).className = "btn-seg " + (currentMode === m ? "active-mode" : "");
       });
       ["auto", "more_puts_bullish", "more_calls_bearish"].forEach(f => {
-        document.getElementById("flow_" + f).className = "btn-seg " + (currentFlow === f ? "active-mode" : "");
+        gid("flow_" + f).className = "btn-seg " + (currentFlow === f ? "active-mode" : "");
       });
 
       const S = prof.p;
@@ -892,27 +802,27 @@
       const dirEdge = currentType === "call" ? brain.callEdge : brain.putEdge;
       const winProb = Math.min(92, Math.max(12, Math.round(dirEdge * 0.92)));
 
-      const vBox = document.getElementById("verdictBox");
+      const vBox = gid("verdictBox");
       const fighting = currentType !== brain.rec;
       if (fighting) {
         vBox.className = "verdict-box warn";
-        document.getElementById("verdictHead").textContent = `⚠️ Warning: You Picked ${currentType.toUpperCase()}S Against a ${brain.winConf}% BUY ${brain.rec.toUpperCase()}S Signal!`;
-        document.getElementById("verdictDesc").textContent = `The 5-signal STDV + OTE + Video Probability brain favors BUY ${brain.rec.toUpperCase()}S (${brain.winConf}% vs ${100 - brain.winConf}%). Tap BUY ${brain.rec.toUpperCase()}S above to align with the setup.`;
+        gid("verdictHead").textContent = `⚠️ Warning: You Picked ${currentType.toUpperCase()}S Against a ${brain.winConf}% BUY ${brain.rec.toUpperCase()}S Signal!`;
+        gid("verdictDesc").textContent = `The 5-signal STDV + OTE + Video Probability brain favors BUY ${brain.rec.toUpperCase()}S (${brain.winConf}% vs ${100 - brain.winConf}%). Tap BUY ${brain.rec.toUpperCase()}S above to align with the setup.`;
       } else {
         vBox.className = "verdict-box good";
-        document.getElementById("verdictHead").textContent = `✅ BUY ${sym} $${K} ${currentType.toUpperCase()} (${dirEdge}% Edge) · Hold 30m–45m`;
-        document.getElementById("verdictDesc").textContent = `Sniper Entry: Wait for 0.705 OTE ($${brain.ote705}) or ${currentType === "call" ? "L2/L3 ($" + brain.L2 + ")" : "H2/H3 ($" + brain.H2 + ")"}. Take Profit at -2.0 STDV ($${brain.stdv2}) & -2.5 STDV ($${brain.stdv2_5}) within 30–45 minutes!`;
+        gid("verdictHead").textContent = `✅ BUY ${sym} $${K} ${currentType.toUpperCase()} (${dirEdge}% Edge) · Hold 30m–45m`;
+        gid("verdictDesc").textContent = `Sniper Entry: Wait for 0.705 OTE ($${brain.ote705}) or ${currentType === "call" ? "L2/L3 ($" + brain.L2 + ")" : "H2/H3 ($" + brain.H2 + ")"}. Take Profit at -2.0 STDV ($${brain.stdv2}) & -2.5 STDV ($${brain.stdv2_5}) within 30–45 minutes!`;
       }
 
       // Render 0DTE Chain Filter Tabs
       ["best_rr", "calls", "puts"].forEach(tab => {
-        const el = document.getElementById("tab_" + tab);
+        const el = gid("tab_" + tab);
         if (el) el.className = "btn-seg " + (currentChainFilter === tab ? "active-mode" : "");
       });
 
       // Render Top 3 Best Reward:Risk 0DTE Cards
       const top3 = rankedByRR.slice(0, 3);
-      const topPicksEl = document.getElementById("topZeroDtePicks");
+      const topPicksEl = gid("topZeroDtePicks");
       if (topPicksEl) {
         topPicksEl.innerHTML = top3.map((c, idx) => {
           const isSel = selContract && selContract.id === c.id;
@@ -939,7 +849,7 @@
       }
 
       // Render Selected 0DTE Contract Deep-Dive Inspector (Good % vs Bad %)
-      const inspEl = document.getElementById("selectedContractInspector");
+      const inspEl = gid("selectedContractInspector");
       if (inspEl && selContract) {
         const c = selContract;
         const isGood = c.goodScore >= 68;
@@ -1022,7 +932,7 @@
         displayChain = allContracts.filter(c => c.type === "put").sort((a, b) => b.K - a.K);
       }
 
-      const chainBodyEl = document.getElementById("zeroDteChainBody");
+      const chainBodyEl = gid("zeroDteChainBody");
       if (chainBodyEl) {
         chainBodyEl.innerHTML = displayChain.map(c => {
           const isSel = selContract && selContract.id === c.id;
@@ -1063,7 +973,7 @@
         }).join("");
       }
 
-      document.getElementById("metricsGrid").innerHTML = `
+      gid("metricsGrid").innerHTML = `
         <div class="metric"><div class="metric-val" style="color:var(--green)">BUY ${brain.rec.toUpperCase()}S</div><div class="metric-lbl">Master Verdict (${brain.winConf}%)</div><div class="metric-sub">Calls ${brain.callEdge}% · Puts ${brain.putEdge}%</div></div>
         <div class="metric"><div class="metric-val">$${brain.ote705}</div><div class="metric-lbl">0.705 OTE Sniper Entry</div><div class="metric-sub">Zone: $${brain.ote79}–$${brain.ote62}</div></div>
         <div class="metric"><div class="metric-val" style="color:var(--green)">$${brain.stdv2}</div><div class="metric-lbl">-2.0 STDV Target</div><div class="metric-sub">-2.5 STDV: $${brain.stdv2_5}</div></div>
@@ -1074,7 +984,7 @@
         <div class="metric"><div class="metric-val" style="color:var(--red)">$${(P * 0.75).toFixed(2)}</div><div class="metric-lbl">Hard Stop (-25%)</div><div class="metric-sub">Theta: -$${Math.abs(entry.thetaHr * 100).toFixed(0)}/hr</div></div>
       `;
 
-      document.getElementById("ladderBody").innerHTML = `
+      gid("ladderBody").innerHTML = `
         <tr><td><strong>0.705 OTE Sniper</strong></td><td>$${brain.ote705}</td><td><span class="pill pill-call">78% Entry</span></td><td>Buy the 62%–79% Fib pullback instead of chasing candles</td></tr>
         <tr><td><strong>-1.0 STDV Target</strong></td><td>$${brain.stdv1}</td><td><span class="pill pill-call">82% Hit</span></td><td>First scale-out: sell 1/3 and move stop to breakeven</td></tr>
         <tr><td><strong>-2.0 STDV + H2/L2</strong></td><td>$${brain.stdv2}</td><td><span class="pill pill-call">68% Hit</span></td><td>Main take-profit target where institutional moves finish</td></tr>
@@ -1083,7 +993,7 @@
         <tr><td><strong>Video L3 & H3</strong></td><td>$${brain.L3} / $${brain.H3}</td><td><span class="pill pill-put">80% Revert</span></td><td>Video 3 setup: QQQ bounced off L3 for +200% in 30m</td></tr>
       `;
 
-      document.getElementById("signalsBody").innerHTML = brain.reasons.map(r => `
+      gid("signalsBody").innerHTML = brain.reasons.map(r => `
         <tr>
           <td><strong>${r.f}</strong></td>
           <td>${r.r}</td>
@@ -1101,7 +1011,7 @@
         { l: "4.0h (All-Day)", h: 4.0 }
       ];
       const moveD = Math.abs(target - S);
-      document.getElementById("holdBody").innerHTML = cps.map(c => {
+      gid("holdBody").innerHTML = cps.map(c => {
         const rD = Math.max(0.015, dte - c.h / 6.5);
         const reach = Math.min(1.15, Math.sqrt(c.h / 0.85));
         const px = currentType === "call" ? S + moveD * reach : Math.max(0.01, S - moveD * reach);
@@ -1113,6 +1023,7 @@
         const adv = burn > 12 ? "Exit Before Here" : (c.h <= 0.75 ? "30m–45m Sweet Spot" : "Trail Stop Tight");
         return `<tr><td><strong>${c.l}</strong></td><td style="color:var(--green);font-weight:700">+${Math.max(0, plT)}$</td><td style="color:var(--red)">-$${Math.abs(plF)}</td><td>-${burn.toFixed(1)}%</td><td>${adv}</td></tr>`;
       }).join("");
+      try { renderSR(SR, prof, sym); } catch (e) { console.error(e); }
       try { renderSimple(prof, brain, sym, allContracts, rankedByRR, selContract); } catch (e) { console.error(e); }
       try { renderTrading(prof, brain, sym, allContracts, selContract); } catch (e) { console.error(e); }
     }
@@ -1168,8 +1079,8 @@
 
     async function syncLiveMarket(sym, manualTrigger = false) {
       const clean = (sym || currentTicker || "QQQ").trim().toUpperCase();
-      const statusEl = document.getElementById("liveStatusText");
-      const badgeEl = document.getElementById("matchBadge");
+      const statusEl = gid("liveStatusText");
+      const badgeEl = gid("matchBadge");
       if (statusEl) statusEl.textContent = `Fetching live 5m market data for ${clean}...`;
 
       fetchYahooOptionChain(clean);
@@ -1236,7 +1147,8 @@
         res
       };
 
-      const manualInput = document.getElementById("manualPriceInput");
+      try { storeCandles(clean, chart, prevClose); } catch (e) { console.error(e); }
+      const manualInput = gid("manualPriceInput");
       if (manualInput && document.activeElement !== manualInput) {
         manualInput.value = livePrice;
       }
@@ -1249,24 +1161,24 @@
     }
 
     let liveSyncDebounce = null;
-    document.getElementById("tickerInput").addEventListener("input", e => {
+    gid("tickerInput").addEventListener("input", e => {
       currentTicker = e.target.value.toUpperCase();
       renderAll(true);
       clearTimeout(liveSyncDebounce);
       liveSyncDebounce = setTimeout(() => syncLiveMarket(currentTicker, true), 550);
     });
-    document.getElementById("tickerSelect").addEventListener("change", e => {
+    gid("tickerSelect").addEventListener("change", e => {
       currentTicker = e.target.value;
-      document.getElementById("tickerInput").value = currentTicker;
+      gid("tickerInput").value = currentTicker;
       renderAll(true);
       syncLiveMarket(currentTicker, true);
     });
-    document.getElementById("manualPriceInput").addEventListener("input", e => {
+    gid("manualPriceInput").addEventListener("input", e => {
       const val = parseFloat(e.target.value);
       if (val > 0) {
         const { prof, sym } = getProfile(currentTicker);
         TICKER_DB[sym] = { ...prof, p: +val.toFixed(2) };
-        document.getElementById("matchBadge").textContent = `⚡ LIVE ${sym} $${val.toFixed(2)}`;
+        gid("matchBadge").textContent = `⚡ LIVE ${sym} $${val.toFixed(2)}`;
         renderAll(true);
       }
     });
@@ -1302,7 +1214,7 @@
               call: mapSide(opts.calls),
               put: mapSide(opts.puts)
             };
-            const badge = document.getElementById("chainSourceBadge");
+            const badge = gid("chainSourceBadge");
             if (badge) badge.textContent = `🟢 Live 0DTE Chain Synced (${clean})`;
             renderAll(false);
             return;
@@ -1311,7 +1223,7 @@
           // fallback to local 0DTE Black-Scholes pricing
         }
       }
-      const badge = document.getElementById("chainSourceBadge");
+      const badge = gid("chainSourceBadge");
       if (badge) badge.textContent = `⚡ 0DTE Live-Priced Chain (${clean})`;
     }
 
@@ -1357,21 +1269,21 @@
     function renderSimple(prof, brain, sym, allContracts, rankedByRR, selContract) {
       const up = brain.rec === "call";
       const conf = brain.winConf;
-      const st = document.getElementById("simpleTicker");
+      const st = gid("simpleTicker");
       if (st && document.activeElement !== st) st.value = currentTicker;
-      const sp = document.getElementById("simplePrice");
+      const sp = gid("simplePrice");
       if (sp) sp.textContent = money(prof.p);
       document.querySelectorAll("#simpleQuick button").forEach(b => {
         b.className = b.textContent === sym ? "on" : "";
       });
-      const ls = document.getElementById("liveStatusText");
-      const ss = document.getElementById("simpleStatus");
+      const ls = gid("liveStatusText");
+      const ss = gid("simpleStatus");
       if (ls && ss) ss.textContent = (ls.textContent || "") + " · Auto-refresh every 30s while the market is open.";
 
       // best contract in recommended direction
       const best = rankedByRR.find(c => c.type === brain.rec) || rankedByRR[0];
       const cost = Math.round(best.mid * 100);
-      const ans = document.getElementById("simpleAnswer");
+      const ans = gid("simpleAnswer");
       if (ans) {
         ans.innerHTML = `
           <div class="s-answer ${up ? "up" : "down"}">
@@ -1411,12 +1323,12 @@
       }
 
       ["best", "call", "put"].forEach(t => {
-        const b = document.getElementById("sTab_" + t);
+        const b = gid("sTab_" + t);
         if (b) b.className = simpleTab === t ? "on" : "";
       });
       let list = simpleTab === "best" ? rankedByRR.slice(0, 4)
         : rankedByRR.filter(c => c.type === simpleTab).slice(0, 6);
-      const cardsEl = document.getElementById("simpleCards");
+      const cardsEl = gid("simpleCards");
       if (cardsEl) {
         cardsEl.innerHTML = list.map(c => `
           <div class="s-card ${selContract && selContract.id === c.id ? "sel" : ""}" onclick="selectZeroDteContract('${c.id}')">
@@ -1428,7 +1340,7 @@
           </div>`).join("");
       }
 
-      const ex = document.getElementById("simpleExplain");
+      const ex = gid("simpleExplain");
       if (ex && selContract) {
         const c = selContract;
         const dir = c.type === "call" ? "UP" : "DOWN";
@@ -1449,6 +1361,137 @@
       }
     }
 
+
+    // ===== SUPPORT & RESISTANCE =====
+    const OG_CANDLES = {};
+    function etParts(ts) {
+      const d = new Date(ts * 1000);
+      const p = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(d);
+      const g = t => (p.find(x => x.type === t) || {}).value;
+      return { day: `${g("year")}-${g("month")}-${g("day")}`, mins: (+g("hour") % 24) * 60 + +g("minute") };
+    }
+    function storeCandles(sym, chart, prevClose) {
+      const q = (chart.indicators && chart.indicators.quote && chart.indicators.quote[0]) || {};
+      const ts = chart.timestamp || [];
+      const bars = [];
+      for (let i = 0; i < ts.length; i++) {
+        const o = q.open && q.open[i], h = q.high && q.high[i], l = q.low && q.low[i], c = q.close && q.close[i], v = (q.volume && q.volume[i]) || 0;
+        if ([o, h, l, c].every(x => typeof x === "number" && !isNaN(x))) bars.push({ t: ts[i], o, h, l, c, v, ...etParts(ts[i]) });
+      }
+      OG_CANDLES[sym] = { bars, prevClose };
+    }
+    function computeSR(sym, prof, brain) {
+      const S = prof.p;
+      const data = OG_CANDLES[sym];
+      const bars = data ? data.bars : [];
+      const days = [...new Set(bars.map(b => b.day))];
+      const today = days[days.length - 1];
+      const todayBars = bars.filter(b => b.day === today);
+      const prevBars = days.length > 1 ? bars.filter(b => b.day === days[days.length - 2]) : [];
+      const recent = bars.slice(-156); // ~2 sessions
+      const avgVol = recent.length ? recent.reduce((a, b) => a + b.v, 0) / recent.length : 0;
+      let atr = recent.length ? recent.slice(-20).reduce((a, b) => a + (b.h - b.l), 0) / Math.min(20, recent.length) : S * 0.002;
+      if (!(atr > 0)) atr = S * 0.002;
+      const raw = [];
+      const add = (price, src) => { if (price > 0 && Math.abs(price - S) / S < 0.03) raw.push({ price, src }); };
+      // swing pivots (2 bars each side)
+      for (let i = 2; i < recent.length - 2; i++) {
+        const b = recent[i];
+        if (b.h >= recent[i - 1].h && b.h >= recent[i - 2].h && b.h >= recent[i + 1].h && b.h >= recent[i + 2].h) add(b.h, "Swing high");
+        if (b.l <= recent[i - 1].l && b.l <= recent[i - 2].l && b.l <= recent[i + 1].l && b.l <= recent[i + 2].l) add(b.l, "Swing low");
+      }
+      if (prevBars.length) {
+        add(Math.max(...prevBars.map(b => b.h)), "Prior-day high");
+        add(Math.min(...prevBars.map(b => b.l)), "Prior-day low");
+        add(prevBars[prevBars.length - 1].c, "Prior-day close");
+      } else if (data && data.prevClose) add(data.prevClose, "Prior close");
+      const orBars = todayBars.filter(b => b.mins >= 570 && b.mins < 600);
+      if (orBars.length) { add(Math.max(...orBars.map(b => b.h)), "Opening-range high"); add(Math.min(...orBars.map(b => b.l)), "Opening-range low"); }
+      const step = S >= 500 ? 5 : S >= 100 ? 1 : S >= 20 ? 0.5 : 0.1;
+      const r0 = Math.round(S / step) * step;
+      for (let k = -2; k <= 2; k++) add(+(r0 + k * step).toFixed(2), "Round number");
+      [["L1", brain.L1], ["L2", brain.L2], ["L3", brain.L3], ["H1", brain.H1], ["H2", brain.H2], ["H3", brain.H3]].forEach(([n, v]) => add(v, "STDV " + n));
+      if (!bars.length) { add(prof.sup, "Recent low"); add(prof.res, "Recent high"); }
+      // cluster within 0.15%
+      raw.sort((a, b) => a.price - b.price);
+      const clusters = [];
+      raw.forEach(r => {
+        const c = clusters[clusters.length - 1];
+        if (c && Math.abs(r.price - c.price) / c.price <= 0.0015) { c.items.push(r); c.price = c.items.reduce((a, b) => a + b.price, 0) / c.items.length; }
+        else clusters.push({ price: r.price, items: [r] });
+      });
+      const ema = prof.e21 || S;
+      const last = recent.slice(-4);
+      const levels = clusters.map(c => {
+        const L = +c.price.toFixed(2);
+        const type = L <= S ? "S" : "R";
+        const tol = Math.max(L * 0.0015, atr * 0.25);
+        let touches = 0, lastIdx = -1, touchVol = 0;
+        recent.forEach((b, i) => { if (b.l - tol <= L && b.h + tol >= L) { if (i - lastIdx > 1) touches++; lastIdx = i; touchVol += b.v; } });
+        const srcs = [...new Set(c.items.map(x => x.src.replace(/^STDV .*/, "STDV band")))];
+        let p = 50; const why = [];
+        const tp = Math.min(12, Math.max(0, touches - 1) * 4); p += tp; if (tp) why.push(`+${tp} touches`);
+        const age = lastIdx < 0 ? 999 : recent.length - 1 - lastIdx;
+        const rp = age <= 12 ? 5 : age <= 40 ? 2 : 0; p += rp; if (rp) why.push(`+${rp} recent`);
+        const cp = Math.min(10, (srcs.length - 1) * 4); p += cp; if (cp) why.push(`+${cp} confluence`);
+        if (touches && avgVol) { const vr = (touchVol / Math.max(1, touches)) / avgVol; const vp = vr > 1.2 ? 5 : vr < 0.8 ? -3 : 0; p += vp; if (vp) why.push(`${vp > 0 ? "+" : ""}${vp} volume`); }
+        if (last.length >= 4) {
+          const speed = Math.abs(last[3].c - last[0].c) / atr;
+          const toward = type === "S" ? last[3].c < last[0].c : last[3].c > last[0].c;
+          const sp = toward ? (speed > 1.5 ? -6 : speed < 0.7 ? 4 : 0) : 0; p += sp; if (sp) why.push(`${sp > 0 ? "+" : ""}${sp} approach`);
+        }
+        const trendUp = S >= ema;
+        const ta = (type === "S") === trendUp ? 5 : -5; p += ta; why.push(`${ta > 0 ? "+" : ""}${ta} trend`);
+        const bounce = Math.max(35, Math.min(80, Math.round(p)));
+        const buf = Math.max(L * 0.0012, atr * 0.3);
+        const bounceAct = type === "S"
+          ? { side: "CALL", trigger: +(L + buf * 0.4).toFixed(2), stop: +(L - buf).toFixed(2), text: "Bounce → CALL" }
+          : { side: "PUT", trigger: +(L - buf * 0.4).toFixed(2), stop: +(L + buf).toFixed(2), text: "Rejection → PUT" };
+        const breakAct = type === "S"
+          ? { side: "PUT", trigger: +(L - buf).toFixed(2), stop: +(L + buf * 0.4).toFixed(2), text: "Break → PUT" }
+          : { side: "CALL", trigger: +(L + buf).toFixed(2), stop: +(L - buf * 0.4).toFixed(2), text: "Breakout → CALL" };
+        const primary = bounce >= 50 ? bounceAct : breakAct;
+        return { price: L, type, dist: +(((L - S) / S) * 100).toFixed(2), touches, bounce, srcs, why, bounceAct, breakAct, primary };
+      }).sort((a, b) => Math.abs(a.dist) - Math.abs(b.dist)).slice(0, 8);
+      const nearest = levels[0] || null;
+      return { levels: levels.sort((a, b) => b.price - a.price), nearest, bars: recent.slice(-78), live: bars.length > 0 };
+    }
+    function applySRToBrain(brain, SR, prof) {
+      const n = SR && SR.nearest;
+      if (!n || Math.abs(n.dist) > 0.5) return;
+      const edge = n.bounce - 50;
+      const callShift = Math.round((n.type === "S" ? edge : -edge) * 0.5);
+      brain.callEdge = Math.min(94, Math.max(6, brain.callEdge + callShift));
+      brain.putEdge = 100 - brain.callEdge;
+      brain.rec = brain.callEdge >= 50 ? "call" : "put";
+      brain.winConf = Math.max(brain.callEdge, brain.putEdge);
+      brain.reasons.push({ f: "6. Nearest S/R level", r: `${n.type === "S" ? "Support" : "Resistance"} $${n.price.toFixed(2)} · ${n.bounce}% hold`, s: n.primary.side, w: `${n.primary.text} trigger $${n.primary.trigger}, stop $${n.primary.stop}` });
+    }
+    function renderSR(SR, prof, sym) {
+      const line = gid("srLine"), tbl = gid("srTable"), svg = gid("srChart");
+      if (!SR || !SR.levels.length) { line.textContent = "No levels yet. Waiting for live candles."; tbl.innerHTML = ""; svg.innerHTML = ""; return; }
+      const n = SR.nearest, S = prof.p;
+      const nm = n.type === "S" ? "support" : "resistance";
+      const p = n.primary;
+      const dirWord = p.side === "CALL" ? "above" : "below";
+      line.className = "sr-line " + (p.side === "CALL" ? "up" : "down");
+      line.innerHTML = `Price is near ${nm} <strong class="num">${n.price.toFixed(2)}</strong> (${n.dist > 0 ? "+" : ""}${n.dist}%): <strong>${n.bounce}% ${n.type === "S" ? "bounce" : "rejection"} chance (estimate)</strong> → favor <strong style="color:${p.side === "CALL" ? "var(--green)" : "var(--red)"}">${p.side}S</strong> ${dirWord} ${p.trigger.toFixed(2)}, stop ${p.stop.toFixed(2)}.` + (SR.live ? "" : ` <span style="color:var(--muted)">(snapshot data, live candles unavailable)</span>`);
+      tbl.innerHTML = `<tr><th>Level</th><th>Type</th><th>Dist</th><th>Touches</th><th>Hold %</th><th>Action</th><th>Trigger</th><th>Stop</th><th>Source</th></tr>` + SR.levels.map(l => `
+        <tr class="${l === n ? "near" : ""}" title="${l.why.join(", ")}">
+          <td class="num">${l.price.toFixed(2)}</td><td><span class="sr-tag ${l.type}">${l.type}</span></td>
+          <td class="num">${l.dist > 0 ? "+" : ""}${l.dist}%</td><td class="num">${l.touches}</td><td class="num">${l.bounce}%</td>
+          <td style="color:${l.primary.side === "CALL" ? "var(--green)" : "var(--red)"}">${l.primary.text}</td>
+          <td class="num">${l.primary.trigger.toFixed(2)}</td><td class="num">${l.primary.stop.toFixed(2)}</td>
+          <td style="color:var(--muted);font-size:11px">${l.srcs.join(" + ")}</td></tr>`).join("");
+      const closes = SR.bars.map(b => b.c);
+      const all = closes.concat(SR.levels.map(l => l.price), [S]);
+      const lo = Math.min(...all), hi = Math.max(...all), pad = (hi - lo) * 0.06 || 1;
+      const Y = v => 190 - ((v - (lo - pad)) / ((hi + pad) - (lo - pad))) * 180;
+      let out = SR.levels.map(l => `<line x1="0" x2="600" y1="${Y(l.price)}" y2="${Y(l.price)}" stroke="${l.type === "S" ? "#22c55e" : "#ef4444"}" stroke-opacity="${l === n ? 0.95 : 0.4}" stroke-width="${l === n ? 2 : 1}" stroke-dasharray="${l === n ? "" : "4 4"}"/><text x="596" y="${Y(l.price) - 3}" fill="#94a3b8" font-size="10" text-anchor="end">${l.price.toFixed(2)} · ${l.bounce}%</text>`).join("");
+      if (closes.length > 1) out += `<polyline fill="none" stroke="#60a5fa" stroke-width="1.6" points="${closes.map((c, i) => `${(i / (closes.length - 1)) * 600},${Y(c)}`).join(" ")}"/>`;
+      out += `<circle cx="${closes.length > 1 ? 600 : 300}" cy="${Y(S)}" r="3.5" fill="#e2e8f0"/>`;
+      svg.innerHTML = out;
+    }
 
     // ===== TRADING DESK (localStorage) =====
     const OG_KEY = "og_desk_v1";
@@ -1501,7 +1544,7 @@
       const st = ogStats(ogBook()), s = OG.settings, et = ogET();
       const pct = st.start ? st.pnl / st.start * 100 : 0;
       const col = st.pnl >= 0 ? "var(--green)" : "var(--red)";
-      const acct = document.getElementById("tAcct");
+      const acct = gid("tAcct");
       if (acct) acct.innerHTML = `
         <div><div class="k">Balance</div><div class="v">${money(st.bal)}</div></div>
         <div><div class="k">Total P&amp;L</div><div class="v" style="color:${col}">${st.pnl >= 0 ? "+" : "−"}${money(Math.abs(st.pnl))} (${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%)</div></div>
@@ -1521,14 +1564,14 @@
       let block = false;
       if (et.mins >= 930 && et.mins < 960) { stand.push("After 15:30 ET — time decay too fast, new buys blocked"); block = true; }
       else if (et.mins >= 840 && et.mins < 960) warn.push("After 14:00 ET — same-day options lose value very quickly. Size down and keep holds short.");
-      const fEl = document.getElementById("tFilter");
+      const fEl = gid("tFilter");
       if (fEl) fEl.innerHTML = (stand.length ? `<div class="t-banner stop"><b>Stand aside</b><ul>${stand.map(r => `<li>${r}</li>`).join("")}</ul></div>` : (open ? `<div class="t-banner ok"><b>Conditions OK</b>No filters triggered. Follow the plan and the stop.</div>` : ""))
         + warn.map(w => `<div class="t-banner warn">${w}</div>`).join("");
 
       // Sizing
       const c = selContract;
       const g = ogGuard(st);
-      const sz = document.getElementById("tSizing");
+      const sz = gid("tSizing");
       if (c && sz) {
         const cost = Math.round(c.ask * 100);
         const afford = Math.floor(st.bal / Math.max(1, cost));
@@ -1540,16 +1583,16 @@
         sz.innerHTML = `<div style="font-size:15px;font-weight:600;margin-bottom:6px">${c.sym} $${c.K} ${c.type === "call" ? "Call" : "Put"} · <span style="color:var(--muted);font-weight:500">Win chance ${c.goodScore}%</span></div>
           <div class="t-grid" style="margin:0 0 10px"><div><div class="k">Cost / contract</div><div class="v">${money(cost)}</div></div><div><div class="k">Affordable</div><div class="v">${afford}</div></div><div><div class="k">% of balance</div><div class="v">${pctBal > 900 ? "—" : pctBal.toFixed(0) + "%"}</div></div><div><div class="k">Max loss / ct</div><div class="v" style="color:var(--red)">−${money(c.riskDollar)}</div></div></div>
           <div class="t-banner ${cls}" style="margin-bottom:8px">${note}</div>`;
-        const eIn = document.getElementById("tEntry");
+        const eIn = gid("tEntry");
         if (eIn && (eIn.dataset.cid !== c.id) && document.activeElement !== eIn) { eIn.value = c.ask.toFixed(2); eIn.dataset.cid = c.id; }
-        const qIn = document.getElementById("tQty");
+        const qIn = gid("tQty");
         if (qIn && afford >= 1 && +qIn.value > afford && document.activeElement !== qIn) qIn.value = afford;
         OG_CTX.afford = afford;
       }
-      const gEl = document.getElementById("tGuard");
+      const gEl = gid("tGuard");
       if (gEl) gEl.innerHTML = `<div class="t-banner ${g.locked ? "stop" : "ok"}" style="margin-bottom:0"><b>Daily guardrails · ${g.locked ? "Locked" : "Active"}</b>
         Trades today ${g.td.count}/${s.maxTrades} · Realized today ${g.td.realized >= 0 ? "+" : "−"}${money(Math.abs(g.td.realized))} (limit −${money(g.maxLoss)}) · Loss streak ${g.td.streak}/2${g.locked ? "<ul>" + g.reasons.map(r => `<li>${r}</li>`).join("") + "</ul>" : ""}</div>`;
-      const btn = document.getElementById("tLogBtn");
+      const btn = gid("tLogBtn");
       if (btn) {
         const unaff = OG_CTX.afford != null && OG_CTX.afford < 1;
         btn.disabled = g.locked || block || unaff || !c;
@@ -1561,15 +1604,15 @@
       ogRenderPerf(st);
       ogRenderJournal();
       const map = { tSetStart: s.start, tSetLoss: s.lossPct, tSetMax: s.maxTrades };
-      Object.keys(map).forEach(id => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = map[id]; });
-      const nEl = document.getElementById("tSetNews"); if (nEl) nEl.checked = s.news;
+      Object.keys(map).forEach(id => { const el = gid(id); if (el && document.activeElement !== el) el.value = map[id]; });
+      const nEl = gid("tSetNews"); if (nEl) nEl.checked = s.news;
     }
 
     function ogLogTrade() {
       if (!OG_CTX || !OG_CTX.selContract || OG_CTX.locked) return;
       const c = OG_CTX.selContract, et = ogET();
-      const entry = parseFloat(document.getElementById("tEntry").value) || c.ask;
-      const qty = Math.max(1, parseInt(document.getElementById("tQty").value, 10) || 1);
+      const entry = parseFloat(gid("tEntry").value) || c.ask;
+      const qty = Math.max(1, parseInt(gid("tQty").value, 10) || 1);
       const ratio = entry / Math.max(0.01, c.mid);
       ogBook().push({ id: "t" + Date.now() + Math.floor(Math.random() * 1000), sym: c.sym, type: c.type, K: c.K, entry: +entry.toFixed(2), qty,
         score: c.goodScore, setup: c.tag.replace(/[^\x20-\x7E]/g, "").replace(/^[\s#\d]+/, "").trim() || "0DTE", rr: c.effectiveRR,
@@ -1579,7 +1622,7 @@
     }
     function ogCloseTrade(id, px) {
       const t = ogBook().find(x => x.id === id); if (!t) return;
-      const inp = document.getElementById("tExit_" + id);
+      const inp = gid("tExit_" + id);
       const exit = px != null ? px : parseFloat(inp && inp.value);
       if (!(exit >= 0)) return;
       t.exit = +(+exit).toFixed(2); t.closedAt = ogNow().getTime();
@@ -1597,7 +1640,7 @@
       return Math.max(0.01, +bs(prof.p, t.K, (hrsLeft / 6.5) / 365, Math.max(0.12, prof.iv / 100), t.type).price.toFixed(2));
     }
     function ogRenderOpen() {
-      const el = document.getElementById("tOpen"); if (!el) return;
+      const el = gid("tOpen"); if (!el) return;
       const open = ogBook().filter(t => t.exit == null);
       if (!open.length) { el.innerHTML = `<div class="s-step-sub" style="margin:0">No open positions.</div>`; return; }
       const now = ogNow().getTime();
@@ -1624,7 +1667,7 @@
       }).join("");
     }
     function ogRenderPerf(st) {
-      const svg = document.getElementById("tChart");
+      const svg = gid("tChart");
       if (svg) {
         const W = 600, H = 170, P = 14, eq = st.eq;
         const lo = Math.min(...eq, st.start) , hi = Math.max(...eq, st.start);
@@ -1642,9 +1685,9 @@
         svg.dataset.points = eq.length;
         void segs;
       }
-      const sEl = document.getElementById("tStats");
+      const sEl = gid("tStats");
       if (sEl) sEl.innerHTML = `<div><div class="k">Win rate</div><div class="v">${st.closed.length ? st.winRate + "%" : "—"}</div></div><div><div class="k">Trades</div><div class="v">${st.closed.length}</div></div><div><div class="k">Avg win</div><div class="v" style="color:var(--green)">${st.wins.length ? "+" + money(st.avgW) : "—"}</div></div><div><div class="k">Avg loss</div><div class="v" style="color:var(--red)">${st.losses.length ? "−" + money(Math.abs(st.avgL)) : "—"}</div></div>`;
-      const bEl = document.getElementById("tBreakdown");
+      const bEl = gid("tBreakdown");
       if (bEl) {
         const grp = (fn) => { const m = {}; st.closed.forEach(t => { const k = fn(t); (m[k] = m[k] || { n: 0, w: 0, p: 0 }); m[k].n++; if (t.pnl > 0) m[k].w++; m[k].p += t.pnl; }); return m; };
         const tbl = (title, m) => { const ks = Object.keys(m); if (!ks.length) return ""; return `<div class="t-sub">${title}</div><table class="t-table"><tr><th>${title.replace("By ", "")}</th><th>Trades</th><th>Win rate</th><th>P&amp;L</th></tr>${ks.map(k => `<tr><td>${k}</td><td>${m[k].n}</td><td>${Math.round(m[k].w / m[k].n * 100)}%</td><td style="color:${m[k].p >= 0 ? "var(--green)" : "var(--red)"}">${m[k].p >= 0 ? "+" : "−"}${money(Math.abs(m[k].p))}</td></tr>`).join("")}</table>`; };
@@ -1652,7 +1695,7 @@
       }
     }
     function ogRenderJournal() {
-      const el = document.getElementById("tJournal"); if (!el) return;
+      const el = gid("tJournal"); if (!el) return;
       const rows = [...ogBook()].sort((a, b) => b.openedAt - a.openedAt);
       el.innerHTML = `<tr><th>Date / ET</th><th>Contract</th><th>Qty</th><th>Entry</th><th>Exit</th><th>Win chance</th><th>P&amp;L</th></tr>` +
         (rows.length ? rows.map(t => `<tr><td>${t.day.slice(5)} ${t.hm}</td><td>${t.sym} $${t.K} ${t.type === "call" ? "C" : "P"}</td><td>${t.qty}</td><td>${money(t.entry)}</td><td>${t.exit == null ? "Open" : money(t.exit)}</td><td>${t.score}%</td><td style="color:${t.pnl == null ? "var(--muted)" : t.pnl >= 0 ? "var(--green)" : "var(--red)"}">${t.pnl == null ? "—" : (t.pnl >= 0 ? "+" : "−") + money(Math.abs(t.pnl))}</td></tr>`).join("")
@@ -1676,15 +1719,15 @@
       OG.books[k] = []; ogSave(); renderAll(false);
     }
     (function initDesk() {
-      const num = (id, key) => { const el = document.getElementById(id); if (el) el.addEventListener("change", e => { const v = parseFloat(e.target.value); if (v > 0) { OG.settings[key] = v; ogSave(); renderAll(false); } }); };
+      const num = (id, key) => { const el = gid(id); if (el) el.addEventListener("change", e => { const v = parseFloat(e.target.value); if (v > 0) { OG.settings[key] = v; ogSave(); renderAll(false); } }); };
       num("tSetStart", "start"); num("tSetLoss", "lossPct"); num("tSetMax", "maxTrades");
-      const n = document.getElementById("tSetNews"); if (n) n.addEventListener("change", e => { OG.settings.news = e.target.checked; ogSave(); renderAll(false); });
+      const n = gid("tSetNews"); if (n) n.addEventListener("change", e => { OG.settings.news = e.target.checked; ogSave(); renderAll(false); });
       setInterval(() => { if (OG_CTX && ogBook().some(t => t.exit == null)) ogRenderOpen(); }, 1000);
     })();
 
     (function initSimple() {
-      const st = document.getElementById("simpleTicker");
-      const ti = document.getElementById("tickerInput");
+      const st = gid("simpleTicker");
+      const ti = gid("tickerInput");
       function setT(v) {
         ti.value = v.toUpperCase();
         ti.dispatchEvent(new Event("input"));
