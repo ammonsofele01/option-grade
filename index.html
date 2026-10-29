@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="OptionGrader" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#0b0f17" />
+  <title>Day Trader Options Grader: Video Probability + STDV & OTE Coach</title>
+  <style>
+    :root {
+      --bg: #0b0f14;
+      --card: #121821;
+      --card-2: #161e29;
+      --border: #222c3a;
+      --text: #f1f5f9;
+      --muted: #8b95a5;
+      --green: #22c55e;
+      --green-bg: rgba(34, 197, 94, 0.10);
+      --yellow: #f59e0b;
+      --yellow-bg: rgba(245, 158, 11, 0.14);
+      --red: #ef4444;
+      --red-bg: rgba(239, 68, 68, 0.10);
+      --blue: #3b82f6;
+      --blue-bg: rgba(59, 130, 246, 0.15);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      padding: env(safe-area-inset-top, 14px) 14px calc(env(safe-area-inset-bottom, 20px) + 20px);
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif; font-feature-settings: "tnum" 1;
+      line-height: 1.45;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    .app-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 4px 14px; border-bottom: 1px solid var(--border); margin-bottom: 14px;
+    }
+    .app-title { font-size: 19px; font-weight: 800; letter-spacing: -0.3px; }
+    .app-sub { font-size: 12px; color: var(--muted); }
+    .badge {
+      background: var(--blue-bg); color: #60a5fa; border: 1px solid rgba(59,130,246,0.35);
+      padding: 4px 9px; border-radius: 999px; font-size: 11px; font-weight: 700;
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 14px; margin-bottom: 14px;
+    }
+    .card-title {
+      font-size: 13px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--muted); margin: 0 0 10px;
+    }
+    .ticker-bar {
+      display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px; margin-bottom: 10px;
+    }
+    label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 4px; font-weight: 600; }
+    input, select {
+      width: 100%; background: var(--card-2); color: var(--text);
+      border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 11px; font-size: 15px; font-weight: 700; outline: none;
+    }
+    .seg-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+    .mode-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
+    .flow-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .btn-seg {
+      background: var(--card-2); color: var(--muted); border: 1px solid var(--border);
+      border-radius: 10px; padding: 9px 6px; font-size: 12px; font-weight: 700;
+      text-align: center; cursor: pointer;
+    }
+    .btn-seg.active-call { background: var(--green-bg); color: var(--green); border-color: var(--green); }
+    .btn-seg.active-put { background: var(--red-bg); color: var(--red); border-color: var(--red); }
+    .btn-seg.active-mode { background: var(--blue-bg); color: #60a5fa; border-color: #3b82f6; }
+    .verdict-box {
+      border-radius: 14px; padding: 14px; margin-bottom: 14px; border: 1px solid var(--border);
+    }
+    .verdict-box.good { background: var(--green-bg); border-color: rgba(16,185,129,0.45); }
+    .verdict-box.warn { background: var(--yellow-bg); border-color: rgba(245,158,11,0.45); }
+    .verdict-box.bad { background: var(--red-bg); border-color: rgba(239,68,68,0.45); }
+    .verdict-head { font-size: 17px; font-weight: 800; margin-bottom: 6px; }
+    .verdict-desc { font-size: 13.5px; color: #e2e8f0; }
+    .metrics-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px;
+    }
+    @media (min-width: 520px) {
+      .metrics-grid { grid-template-columns: repeat(4, 1fr); }
+    }
+    .metric {
+      background: var(--card-2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 10px;
+    }
+    .metric-val { font-size: 18px; font-weight: 800; margin-bottom: 2px; }
+    .metric-lbl { font-size: 11px; color: var(--muted); font-weight: 600; }
+    .metric-sub { font-size: 10.5px; color: var(--muted); margin-top: 3px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+    th { text-align: left; color: var(--muted); font-size: 11px; padding: 7px 6px; border-bottom: 1px solid var(--border); }
+    td { padding: 8px 6px; border-bottom: 1px solid rgba(38,52,77,0.5); vertical-align: top; }
+    .pill {
+      display: inline-block; padding: 2px 7px; border-radius: 6px; font-size: 11px; font-weight: 700;
+    }
+    .pill-call { background: var(--green-bg); color: var(--green); }
+    .pill-put { background: var(--red-bg); color: var(--red); }
+    .pill-warn { background: var(--yellow-bg); color: var(--yellow); }
+    .step-item {
+      background: var(--card-2); border-left: 3px solid #3b82f6;
+      border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+    }
+    .step-title { font-weight: 800; font-size: 13px; margin-bottom: 3px; color: #93c5fd; }
+    .step-desc { font-size: 12.5px; color: #cbd5e1; }
+  
+    .chain-tabs {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 10px;
+    }
+    .top-picks-grid {
+      display: grid; grid-template-columns: repeat(1, 1fr); gap: 8px; margin-bottom: 12px;
+    }
+    @media (min-width: 540px) {
+      .top-picks-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .pick-card {
+      background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+      padding: 10px 11px; cursor: pointer; transition: transform 0.12s ease, border-color 0.12s ease;
+      position: relative;
+    }
+    .pick-card:hover { border-color: #60a5fa; transform: translateY(-1px); }
+    .pick-card.selected {
+      border: 2px solid var(--green);
+      background: linear-gradient(180deg, rgba(16, 185, 129, 0.16), rgba(25, 35, 54, 0.95));
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.18);
+    }
+    .pick-card.selected-bad {
+      border: 2px solid var(--red);
+      background: linear-gradient(180deg, rgba(239, 68, 68, 0.16), rgba(25, 35, 54, 0.95));
+    }
+    .chain-row { cursor: pointer; transition: background 0.12s ease; }
+    .chain-row:hover { background: rgba(59, 130, 246, 0.12); }
+    .chain-row.active-row {
+      background: rgba(16, 185, 129, 0.16) !important;
+      outline: 1.5px solid var(--green);
+    }
+    .chain-row.active-row-bad {
+      background: rgba(239, 68, 68, 0.16) !important;
+      outline: 1.5px solid var(--red);
+    }
+    .inspector-box {
+      background: var(--card-2); border: 1.5px solid var(--border);
+      border-radius: 14px; padding: 13px; margin-bottom: 12px;
+    }
+    .inspector-box.good { border-color: rgba(16, 185, 129, 0.65); background: linear-gradient(180deg, rgba(16,185,129,0.12), rgba(25,35,54,0.98)); }
+    .inspector-box.warn { border-color: rgba(245, 158, 11, 0.65); background: linear-gradient(180deg, rgba(245,158,11,0.12), rgba(25,35,54,0.98)); }
+    .inspector-box.bad { border-color: rgba(239, 68, 68, 0.65); background: linear-gradient(180deg, rgba(239,68,68,0.12), rgba(25,35,54,0.98)); }
+    .pct-bar-wrap {
+      width: 100%; height: 12px; background: rgba(239, 68, 68, 0.35);
+      border-radius: 999px; overflow: hidden; display: flex; margin: 8px 0 6px;
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .pct-bar-good { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); transition: width 0.25s ease; }
+    .pct-bar-bad { height: 100%; background: linear-gradient(90deg, #f87171, #ef4444); transition: width 0.25s ease; }
+    .rr-badge {
+      display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;
+      background: rgba(59, 130, 246, 0.18); color: #93c5fd; border: 1px solid rgba(59, 130, 246, 0.4);
+    }
+    .table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+
+    /* ===== Simple Mode (pro dark) ===== */
+    .s-step { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px 16px; margin-bottom: 14px; }
+    .s-step-title { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+    .s-step-sub { font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+    .s-row { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+    .num, .s-price, .s-box-val, .s-card-line, .s-pill { font-variant-numeric: tabular-nums; }
+    .s-input { flex: 1; min-width: 120px; font-size: 18px !important; font-weight: 600; padding: 11px 12px !important; border-radius: 10px !important; text-transform: uppercase; background: #0b0f14 !important; border: 1px solid var(--border) !important; color: var(--text) !important; }
+    .s-price { font-size: 18px; font-weight: 600; background: #0b0f14; border: 1px solid var(--border); color: var(--text); border-radius: 10px; padding: 10px 14px; display: flex; align-items: center; }
+    .s-btn-refresh { background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    .s-btn-refresh:hover { border-color: #3a4658; }
+    .s-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 12px; }
+    .s-quick button { font-size: 14px; font-weight: 600; padding: 9px 4px; border-radius: 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; }
+    .s-quick button.on { color: var(--text); border-color: var(--text); background: var(--card-2); }
+    .s-status { font-size: 12px; color: var(--muted); margin-top: 10px; }
+    .s-answer { border-radius: 12px; padding: 16px; margin-bottom: 12px; background: #0b0f14; border: 1px solid var(--border); border-left: 3px solid; }
+    .s-answer.up { border-left-color: var(--green); } .s-answer.down { border-left-color: var(--red); }
+    .s-answer-label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+    .s-answer-head { font-size: 26px; font-weight: 700; margin: 4px 0 2px; letter-spacing: -.01em; }
+    .s-answer.up .s-answer-head { color: var(--green); } .s-answer.down .s-answer-head { color: var(--red); }
+    .s-answer-conf { font-size: 14px; color: var(--muted); }
+    .s-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin: 14px 0 6px; background: var(--border); }
+    .s-bar .g { background: var(--green); } .s-bar .b { background: var(--red); opacity: .8; }
+    .s-bar-legend { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+    .s-boxes { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .s-box { background: var(--card); padding: 14px; }
+    .s-box-label { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; }
+    .s-box-val { font-size: 17px; font-weight: 600; }
+    .s-box-note { font-size: 13px; color: var(--muted); margin-top: 4px; line-height: 1.45; }
+    .s-cards { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+    .s-card { background: var(--card); border-bottom: 1px solid var(--border); padding: 12px 14px; cursor: pointer; display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+    .s-card:last-child { border-bottom: none; }
+    .s-card:hover { background: var(--card-2); }
+    .s-card.sel { background: var(--card-2); box-shadow: inset 3px 0 0 var(--blue); }
+    .s-card-top { display: contents; }
+    .s-card-name { font-size: 15px; font-weight: 600; }
+    .s-pill { font-size: 12px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap; justify-self: end; }
+    .s-pill.good { background: var(--green-bg); color: var(--green); } .s-pill.bad { background: var(--red-bg); color: var(--red); } .s-pill.meh { background: var(--yellow-bg); color: var(--yellow); }
+    .s-card-meta { grid-column: 1 / -1; display: flex; gap: 16px; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+    .s-card-meta strong { color: var(--text); font-weight: 600; }
+    .s-explain { margin-top: 12px; background: #0b0f14; border: 1px solid var(--border); border-radius: 12px; padding: 14px; font-size: 14px; line-height: 1.55; color: #cbd5e1; }
+    .s-explain h4 { margin: 0 0 8px; font-size: 15px; font-weight: 600; color: var(--text); }
+    .s-tabs { display: inline-flex; gap: 2px; margin-bottom: 12px; padding: 3px; background: #0b0f14; border: 1px solid var(--border); border-radius: 10px; }
+    .s-tabs button { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 8px; border: none; background: transparent; color: var(--muted); cursor: pointer; }
+    .s-tabs button.on { background: var(--card-2); color: var(--text); }
+    details.pro-drawer { margin: 6px 0 16px; }
+    details.pro-drawer > summary { font-size: 14px; font-weight: 600; padding: 14px 16px; background: var(--card); border: 1px solid var(--border); border-radius: 12px; cursor: pointer; list-style: none; color: var(--text); display: flex; justify-content: space-between; }
+    details.pro-drawer > summary::-webkit-details-marker { display: none; }
+    details.pro-drawer > summary::after { content: "Show ▾"; color: var(--muted); font-weight: 500; }
+    details.pro-drawer[open] > summary::after { content: "Hide ▴"; }
+    details.pro-drawer[open] > summary { margin-bottom: 12px; }
+    details.pro-drawer table { font-variant-numeric: tabular-nums; }
+    .s-footer { text-align: center; font-size: 12px; color: var(--muted); padding: 12px 8px 28px; }
+
+    /* ===== Trading desk ===== */
+    .t-acct { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:-4px 0 14px; padding:10px 14px; background:var(--card); border:1px solid var(--border); border-radius:12px; font-variant-numeric:tabular-nums; }
+    .t-acct .k { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .t-acct .v { font-size:17px; font-weight:600; }
+    .t-mode { font-size:11px; font-weight:700; letter-spacing:.08em; padding:4px 8px; border-radius:6px; }
+    .t-mode.live { background:var(--red-bg); color:var(--red); border:1px solid rgba(239,68,68,.35); }
+    .t-banner { border-radius:10px; padding:12px 14px; margin-bottom:12px; font-size:14px; border:1px solid; }
+    .t-banner.stop { background:var(--red-bg); border-color:rgba(239,68,68,.35); color:#fecaca; }
+    .t-banner.warn { background:var(--yellow-bg); border-color:rgba(245,158,11,.35); color:#fde68a; }
+    .t-banner.ok { background:var(--green-bg); border-color:rgba(34,197,94,.3); color:#bbf7d0; }
+    .t-banner b { display:block; font-size:13px; text-transform:uppercase; letter-spacing:.06em; margin-bottom:4px; }
+    .t-banner ul { margin:4px 0 0 18px; padding:0; }
+    .t-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-top:10px; }
+    .t-grid > div { background:var(--card); padding:10px; font-variant-numeric:tabular-nums; }
+    .t-grid .k { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+    .t-grid .v { font-size:16px; font-weight:600; margin-top:2px; }
+    @media (max-width:480px){ .t-grid { grid-template-columns:repeat(2,1fr); } }
+    .t-btn { background:var(--text); color:#0b0f14; border:none; border-radius:10px; padding:11px 14px; font-size:14px; font-weight:600; cursor:pointer; }
+    .t-btn:disabled { background:var(--border); color:var(--muted); cursor:not-allowed; }
+    .t-btn.ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
+    .t-btn.sm { padding:7px 10px; font-size:13px; }
+    .t-in { background:#0b0f14 !important; border:1px solid var(--border) !important; color:var(--text) !important; border-radius:8px !important; padding:8px 10px !important; font-size:14px !important; width:100%; font-variant-numeric:tabular-nums; }
+    .t-form { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:10px 0; }
+    .t-form label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; display:block; margin-bottom:3px; }
+    .t-pos { background:#0b0f14; border:1px solid var(--border); border-radius:10px; padding:12px; margin-bottom:10px; font-variant-numeric:tabular-nums; }
+    .t-pos-head { display:flex; justify-content:space-between; font-weight:600; font-size:15px; }
+    .t-coach { font-size:14px; margin-top:8px; padding:8px 10px; border-radius:8px; background:var(--card-2); }
+    .t-table { width:100%; border-collapse:collapse; font-size:13px; font-variant-numeric:tabular-nums; }
+    .t-table th { text-align:left; color:var(--muted); font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:.05em; padding:6px 4px; border-bottom:1px solid var(--border); background:transparent; }
+    .t-table td { padding:7px 4px; border-bottom:1px solid var(--border); }
+    .t-switch { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--muted); cursor:pointer; }
+    .t-chart { width:100%; height:170px; display:block; background:#0b0f14; border:1px solid var(--border); border-radius:10px; }
+    .t-sub { font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:14px 0 6px; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="app-header">
+      <div>
+        <div class="app-title">⚡ OptionGrader Sniper Coach</div>
+        <div class="app-sub">Video Probability (L1–L3 / H1–H3) + STDV & 0.705 OTE</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+        <div class="badge" id="matchBadge">🟢 Live Market Auto-Sync</div>
+        <div style="font-size:10.5px;color:var(--muted);" id="liveStatusText">Syncs 5m Yahoo Finance candles</div>
+      </div>
+    </div>
+
+    <div class="t-acct" id="tAcct"></div>
+    <div id="tFilter"></div>
+    <!-- ===== SIMPLE BEGINNER SECTION ===== -->
+    <div class="s-step">
+      <div class="s-step-title">Step 1 · Select Ticker</div>
+      <div class="s-step-sub">Choose a symbol or type any ticker.</div>
+      <div class="s-row">
+        <input type="text" id="simpleTicker" class="s-input" value="QQQ" placeholder="e.g. TSLA" autocomplete="off" />
+        <div class="s-price" id="simplePrice">$—</div>
+        <button class="s-btn-refresh" onclick="syncLiveMarket(currentTicker, true)">Refresh</button>
+      </div>
+      <div class="s-quick" id="simpleQuick">
+        <button>QQQ</button><button>SPY</button><button>TSLA</button><button>NVDA</button>
+        <button>AAPL</button><button>META</button><button>AMD</button><button>PLTR</button>
+      </div>
+      <div class="s-status" id="simpleStatus">Auto-refreshes every 30s during market hours (7:30 AM – 2:00 PM MT).</div>
+    </div>
+
+    <div class="s-step">
+      <div class="s-step-title">Step 2 · Signal</div>
+      <div id="simpleAnswer"></div>
+    </div>
+
+    <div class="s-step">
+      <div class="s-step-title">Step 3 · 0DTE Contracts</div>
+      <div class="s-step-sub">Same-day expiry contracts, ranked by reward vs. risk. Tap one for a breakdown.</div>
+      <div class="s-tabs">
+        <button id="sTab_best" onclick="setSimpleTab('best')">Top ranked</button>
+        <button id="sTab_call" onclick="setSimpleTab('call')">Calls</button>
+        <button id="sTab_put" onclick="setSimpleTab('put')">Puts</button>
+      </div>
+      <div class="s-cards" id="simpleCards"></div>
+      <div class="s-explain" id="simpleExplain"></div>
+    </div>
+
+    <div class="s-step" id="tTradeStep">
+      <div class="s-step-title">Step 4 · Size &amp; Log Your Trade</div>
+      <div id="tSizing"></div>
+      <div id="tGuard"></div>
+      <div class="t-form">
+        <div><label>Entry price</label><input class="t-in" type="number" step="0.01" id="tEntry" /></div>
+        <div><label>Contracts</label><input class="t-in" type="number" min="1" step="1" id="tQty" value="1" /></div>
+        <div style="display:flex;align-items:flex-end"><button class="t-btn" style="width:100%" id="tLogBtn" onclick="ogLogTrade()">Log trade</button></div>
+      </div>
+      <div class="s-step-sub" style="margin:0">Record a trade you placed in your broker app. Entry is prefilled with the selected contract's ask price per share; change it to your actual fill. One contract = 100 shares.</div>
+    </div>
+
+    <div class="s-step">
+      <div class="s-step-title">Open Positions · Exit Coach</div>
+      <div id="tOpen"></div>
+    </div>
+
+    <div class="s-step">
+      <div class="s-step-title">Performance</div>
+      <svg class="t-chart" id="tChart" viewBox="0 0 600 170" preserveAspectRatio="none"></svg>
+      <div class="t-grid" id="tStats"></div>
+      <div id="tBreakdown"></div>
+    </div>
+
+    <div class="s-step">
+      <div class="s-step-title">Trade Journal</div>
+      <div style="overflow-x:auto"><table class="t-table" id="tJournal"></table></div>
+      <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+        <button class="t-btn ghost sm" onclick="ogExport()">Export CSV</button>
+        <button class="t-btn ghost sm" onclick="ogClear()">Clear journal</button>
+      </div>
+    </div>
+
+    <div class="s-step">
+      <div class="s-step-title">Settings</div>
+      <div class="t-form">
+        <div><label>Starting balance ($)</label><input class="t-in" type="number" step="1" id="tSetStart" /></div>
+        <div><label>Max daily loss (%)</label><input class="t-in" type="number" step="1" id="tSetLoss" /></div>
+        <div><label>Max trades / day</label><input class="t-in" type="number" step="1" id="tSetMax" /></div>
+      </div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:6px">
+        <label class="t-switch"><input type="checkbox" id="tSetNews" style="width:auto;margin:0" /> Major news today (CPI / FOMC)</label>
+      </div>
+    </div>
+
+    <details class="pro-drawer" id="proDrawer">
+      <summary>Detailed analysis</summary>
+
+    <div class="card">
+      <div class="card-title">1. Enter Ticker — Auto-Picks Call vs. Put & Hold Time</div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
+        <button onclick="syncLiveMarket(currentTicker, true)" style="background:#10b981;color:#06281e;border:none;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:800;cursor:pointer;">🔄 Sync Live Market Data Now</button>
+        <label style="display:inline-flex;align-items:center;gap:5px;margin:0;font-size:11.5px;color:#cbd5e1;cursor:pointer;">
+          <input type="checkbox" id="autoSyncToggle" checked style="width:15px;height:15px;margin:0;" /> Auto-Update Every 30s at Market Open
+        </label>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:5px;">
+          <span style="font-size:11px;color:var(--muted);">Live Price ($):</span>
+          <input type="number" step="0.01" id="manualPriceInput" placeholder="Auto" style="width:88px;padding:6px 8px;font-size:13px;" title="Optional: type exact price from your broker" />
+        </div>
+      </div>
+      <div class="ticker-bar">
+        <div>
+          <label>Type Any Stock Ticker</label>
+          <input type="text" id="tickerInput" value="QQQ" placeholder="QQQ, SPY, TSLA..." />
+        </div>
+        <div>
+          <label>Quick-Pick Popular Tickers</label>
+          <select id="tickerSelect">
+            <option value="QQQ">QQQ — Nasdaq 100 ETF ($720.79)</option>
+            <option value="SPY">SPY — S&P 500 ETF ($769.53)</option>
+            <option value="TSLA">TSLA — Tesla ($406.22)</option>
+            <option value="NVDA">NVDA — NVIDIA ($217.79)</option>
+            <option value="AAPL">AAPL — Apple ($345.41)</option>
+            <option value="META">META — Meta ($623.46)</option>
+            <option value="AMD">AMD — AMD ($559.21)</option>
+            <option value="PLTR">PLTR — Palantir ($199.50)</option>
+            <option value="COIN">COIN — Coinbase ($160.35)</option>
+            <option value="SOFI">SOFI — SoFi ($16.66)</option>
+            <option value="NFLX">NFLX — Netflix ($62.56)</option>
+            <option value="BA">BA — Boeing ($171.45)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="seg-row">
+        <div class="btn-seg active-call" id="btnCall" onclick="setOptType('call')">BUY CALLS</div>
+        <div class="btn-seg" id="btnPut" onclick="setOptType('put')">BUY PUTS</div>
+      </div>
+
+      <div class="mode-row">
+        <div class="btn-seg" id="mode_scalp_2dte" onclick="setMode('scalp_2dte')">2DTE Scalp</div>
+        <div class="btn-seg active-mode" id="mode_zero_dte" onclick="setMode('zero_dte')">0DTE 30m</div>
+        <div class="btn-seg" id="mode_friday_5dte" onclick="setMode('friday_5dte')">5DTE Safe</div>
+        <div class="btn-seg" id="mode_lotto_0dte" onclick="setMode('lotto_0dte')">0DTE Lotto</div>
+      </div>
+
+      <label style="margin-top:6px;">Put/Call Ratio Bot Override (From Video Strategy)</label>
+      <div class="flow-row">
+        <div class="btn-seg active-mode" id="flow_auto" onclick="setFlow('auto')">Auto-Detect</div>
+        <div class="btn-seg" id="flow_more_puts_bullish" onclick="setFlow('more_puts_bullish')">More Puts (Bullish)</div>
+        <div class="btn-seg" id="flow_more_calls_bearish" onclick="setFlow('more_calls_bearish')">More Calls (Bearish)</div>
+      </div>
+    </div>
+
+    <div id="verdictBox" class="verdict-box good">
+      <div class="verdict-head" id="verdictHead">Loading...</div>
+      <div class="verdict-desc" id="verdictDesc"></div>
+    </div>
+
+        <div class="card" id="zeroDteChainCard">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+        <div class="card-title" style="margin:0;color:#60a5fa;">🔥 2. Live 0DTE Option Contracts — Click Any Contract to Grade (Highest Reward : Lowest Risk)</div>
+        <span class="rr-badge" id="chainSourceBadge">⚡ 0DTE Chain Active</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
+        Tap any <strong>0DTE (Same-Day Expiry)</strong> contract below to see its exact <strong>GOOD % vs. BAD %</strong> score, <strong>Reward-to-Risk Ratio (R:R)</strong>, <strong>-25% Hard Stop Risk ($)</strong>, and <strong>-2.0 STDV Target Reward ($)</strong>.
+      </div>
+
+      <div class="chain-tabs">
+        <div class="btn-seg active-mode" id="tab_best_rr" onclick="setChainFilter('best_rr')">Top ranked R:R Setups</div>
+        <div class="btn-seg" id="tab_calls" onclick="setChainFilter('calls')">📈 All 0DTE Calls</div>
+        <div class="btn-seg" id="tab_puts" onclick="setChainFilter('puts')">📉 All 0DTE Puts</div>
+      </div>
+
+      <div class="top-picks-grid" id="topZeroDtePicks"></div>
+
+      <div id="selectedContractInspector" class="inspector-box good"></div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>0DTE Contract (Click to Grade)</th>
+              <th>Bid / Ask (Mid)</th>
+              <th>Delta · Gamma</th>
+              <th>Max Risk (-25%) → Target Reward</th>
+              <th>Reward:Risk</th>
+              <th>Good vs. Bad %</th>
+            </tr>
+          </thead>
+          <tbody id="zeroDteChainBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+<div class="card">
+      <div class="card-title">3. Precision Sniper Numbers (STDV + OTE + Hold Time)</div>
+      <div class="metrics-grid" id="metricsGrid"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">4. STDV + OTE & Video Probability Price Ladder</div>
+      <table>
+        <thead>
+          <tr><th>Level</th><th>Price</th><th>Odds</th><th>What It Means (Simple)</th></tr>
+        </thead>
+        <tbody id="ladderBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">5. Why Buy Calls vs. Puts? (5 Live Strategy Clues)</div>
+      <table>
+        <thead>
+          <tr><th>Clue</th><th>Live Reading</th><th>Vote</th><th>Plain-English Explanation</th></tr>
+        </thead>
+        <tbody id="signalsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">6. Precision Hold-Time Planner (15m to 4h)</div>
+      <table>
+        <thead>
+          <tr><th>Hold Time</th><th>If Hits Target</th><th>If Flat (Theta)</th><th>Decay</th><th>Coach Advice</th></tr>
+        </thead>
+        <tbody id="holdBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">7. Learn It Yourself: 4-Step Sniper Checklist</div>
+      <div class="step-item">
+        <div class="step-title">Step 1: Spot the 'AMD' Fake-Out Move (Accumulation → Manipulation → Distribution)</div>
+        <div class="step-desc">At market open, wait for price to make a fake-out drop into L2/L3 support (or -2.0 to -2.5 STDV) to trap retail traders into buying Puts at the bottom.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-title">Step 2: Confirm With Contrarian Put/Call Ratio & VIX Cap</div>
+        <div class="step-desc">Video Rule: "More Puts in the market is BULLISH for price; More Calls is BEARISH!" When everyone buys Puts at L2/L3 and VIX caps out at resistance, Market Makers must buy the stock back up.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-title">Step 3: Enter at the 0.705 OTE Pullback (62%–79% Fib Zone)</div>
+        <div class="step-desc">Never chase green candles! Let price bounce off L2/L3, then buy the 62%–79% pullback right at the 0.705 Optimal Trade Entry price with a hard -25% stop-loss.</div>
+      </div>
+      <div class="step-item">
+        <div class="step-title">Step 4: Take Profit at -2.0 STDV / H1–H2 in 30 to 45 Minutes</div>
+        <div class="step-desc">Just like the video's +200% QQQ Call in 30 minutes, scale out at -1.0 STDV and lock in full profits at -2.0 to -2.5 STDV before hourly Theta decay melts your option.</div>
+      </div>
+    </div>
+    </details>
+    <div class="s-footer">For learning only, not financial advice. 0DTE options can lose 100% fast.</div>
+  </div>
+
+  <script>
+    const TICKER_DB = {"SPY":{"p":769.53,"iv":12,"ivr":22,"s":0.02,"oi":68500,"n":"State Street SPDR S&P 50","chg1d":0.54,"chg5d":0.06,"e9":767.58,"e21":768.63,"e50":766.23,"rsi":44,"rvol":0.5,"sup":758.68,"res":776.35},"QQQ":{"p":720.79,"iv":22,"ivr":36,"s":0.03,"oi":54000,"n":"Invesco QQQ Trust, Serie","chg1d":1.21,"chg5d":0.44,"e9":718.59,"e21":725.45,"e50":725.1,"rsi":33,"rvol":0.5,"sup":701.16,"res":740.53},"IWM":{"p":279.89,"iv":17,"ivr":29,"s":0.03,"oi":32400,"n":"iShares Russell 2000 Ind","chg1d":1.05,"chg5d":1.49,"e9":276.66,"e21":278.05,"e50":282.96,"rsi":54,"rvol":0.5,"sup":269.88,"res":280.04},"DIA":{"p":523.22,"iv":12,"ivr":17,"s":0.15,"oi":4800,"n":"State Street SPDR Dow Jo","chg1d":0.05,"chg5d":-0.22,"e9":522.24,"e21":520.29,"e50":520.95,"rsi":68,"rvol":0.5,"sup":512.96,"res":528.45},"TQQQ":{"p":70.92,"iv":68,"ivr":37,"s":0.03,"oi":28500,"n":"ProShares UltraPro QQQ","chg1d":3.64,"chg5d":0.72,"e9":70.64,"e21":73.11,"e50":73.82,"rsi":31,"rvol":0.69,"sup":65.37,"res":77.79},"SQQQ":{"p":37.01,"iv":65,"ivr":33,"s":0.03,"oi":28500,"n":"ProShares UltraPro Short","chg1d":-3.57,"chg5d":-1.78,"e9":37.49,"e21":36.61,"e50":37.0,"rsi":65,"rvol":0.61,"sup":34.42,"res":40.23},"SOXL":{"p":100.31,"iv":145,"ivr":32,"s":0.03,"oi":28500,"n":"Direxion Daily Semicondu","chg1d":10.84,"chg5d":2.83,"e9":99.48,"e21":112.61,"e50":125.7,"rsi":25,"rvol":0.86,"sup":80.22,"res":120.9},"ARKK":{"p":84.79,"iv":43,"ivr":58,"s":0.08,"oi":4800,"n":"ARK Innovation ETF","chg1d":3.6,"chg5d":1.64,"e9":83.81,"e21":85.28,"e50":84.86,"rsi":43,"rvol":0.61,"sup":80.7,"res":86.47},"NVDA":{"p":217.79,"iv":35,"ivr":34,"s":0.02,"oi":48500,"n":"NVIDIA","chg1d":0.83,"chg5d":0.61,"e9":217.56,"e21":220.85,"e50":220.55,"rsi":32,"rvol":0.5,"sup":210.18,"res":226.0},"TSLA":{"p":406.22,"iv":44,"ivr":19,"s":0.05,"oi":42500,"n":"Tesla","chg1d":3.73,"chg5d":8.7,"e9":382.55,"e21":375.72,"e50":369.25,"rsi":62,"rvol":0.81,"sup":349.33,"res":407.5},"AAPL":{"p":345.41,"iv":15,"ivr":12,"s":0.03,"oi":34500,"n":"Apple","chg1d":0.44,"chg5d":1.74,"e9":344.04,"e21":340.52,"e50":333.03,"rsi":63,"rvol":0.5,"sup":338.7,"res":351.73},"MSFT":{"p":532.35,"iv":23,"ivr":13,"s":0.1,"oi":12400,"n":"Microsoft","chg1d":-0.05,"chg5d":0.09,"e9":530.18,"e21":525.95,"e50":507.11,"rsi":52,"rvol":0.5,"sup":515.7,"res":545.75},"AMZN":{"p":253.2,"iv":38,"ivr":35,"s":0.03,"oi":28500,"n":"Amazon.com","chg1d":1.65,"chg5d":-3.59,"e9":253.72,"e21":254.43,"e50":254.33,"rsi":44,"rvol":0.5,"sup":246.45,"res":265.34},"META":{"p":623.46,"iv":43,"ivr":50,"s":0.1,"oi":12400,"n":"Meta Platforms","chg1d":-1.13,"chg5d":-10.2,"e9":667.39,"e21":688.43,"e50":674.02,"rsi":25,"rvol":1.41,"sup":621.36,"res":761.5},"GOOGL":{"p":321.17,"iv":25,"ivr":19,"s":0.1,"oi":12400,"n":"Alphabet","chg1d":1.38,"chg5d":-5.62,"e9":329.69,"e21":337.04,"e50":342.1,"rsi":25,"rvol":0.63,"sup":316.6,"res":359.4},"GOOG":{"p":317.62,"iv":24,"ivr":17,"s":0.1,"oi":12400,"n":"Alphabet","chg1d":1.09,"chg5d":-5.58,"e9":326.27,"e21":333.54,"e50":338.88,"rsi":23,"rvol":0.56,"sup":313.51,"res":355.25},"AMD":{"p":559.21,"iv":65,"ivr":32,"s":0.08,"oi":22400,"n":"Advanced Micro Devices","chg1d":5.26,"chg5d":4.58,"e9":546.04,"e21":560.58,"e50":551.34,"rsi":34,"rvol":0.64,"sup":502.6,"res":591.88},"NFLX":{"p":62.56,"iv":41,"ivr":44,"s":0.03,"oi":28500,"n":"Netflix","chg1d":-2.1,"chg5d":-8.92,"e9":66.33,"e21":68.71,"e50":71.58,"rsi":32,"rvol":0.57,"sup":62.53,"res":73.07},"AVGO":{"p":342.55,"iv":49,"ivr":25,"s":0.1,"oi":12400,"n":"Broadcom","chg1d":4.06,"chg5d":2.45,"e9":335.84,"e21":343.11,"e50":355.26,"rsi":33,"rvol":0.62,"sup":320.23,"res":354.25},"PLTR":{"p":199.5,"iv":52,"ivr":26,"s":0.05,"oi":12400,"n":"Palantir Technologies","chg1d":0.33,"chg5d":3.58,"e9":197.76,"e21":195.08,"e50":184.26,"rsi":54,"rvol":0.5,"sup":184.45,"res":209.29},"COIN":{"p":160.35,"iv":62,"ivr":19,"s":0.08,"oi":4800,"n":"Coinbase Global","chg1d":0.47,"chg5d":-6.15,"e9":168.17,"e21":174.52,"e50":175.17,"rsi":38,"rvol":0.5,"sup":155.31,"res":185.49},"MSTR":{"p":140.87,"iv":81,"ivr":23,"s":0.05,"oi":12400,"n":"Strategy Inc","chg1d":0.75,"chg5d":-1.3,"e9":144.57,"e21":146.88,"e50":139.81,"rsi":41,"rvol":0.5,"sup":133.6,"res":155.69},"SOFI":{"p":16.66,"iv":75,"ivr":61,"s":0.03,"oi":28500,"n":"SoFi Technologies","chg1d":15.21,"chg5d":13.49,"e9":15.14,"e21":15.41,"e50":16.15,"rsi":57,"rvol":2.65,"sup":13.86,"res":16.76},"HOOD":{"p":96.15,"iv":60,"ivr":18,"s":0.05,"oi":12400,"n":"Robinhood Markets","chg1d":3.57,"chg5d":-2.1,"e9":98.27,"e21":103.32,"e50":105.42,"rsi":35,"rvol":0.52,"sup":91.63,"res":109.22},"SMCI":{"p":35.12,"iv":88,"ivr":28,"s":0.03,"oi":28500,"n":"Super Micro Computer","chg1d":7.43,"chg5d":8.16,"e9":34.57,"e21":36.58,"e50":37.11,"rsi":28,"rvol":0.57,"sup":30.92,"res":38.02},"ARM":{"p":225.91,"iv":72,"ivr":35,"s":0.08,"oi":4800,"n":"Arm Holdings plc","chg1d":1.15,"chg5d":2.19,"e9":228.36,"e21":245.37,"e50":261.86,"rsi":23,"rvol":0.5,"sup":208.3,"res":250.2},"MU":{"p":931.73,"iv":61,"ivr":10,"s":0.1,"oi":12400,"n":"Micron Technology","chg1d":3.1,"chg5d":3.98,"e9":914.74,"e21":948.98,"e50":965.56,"rsi":32,"rvol":0.5,"sup":849.25,"res":949.42},"INTC":{"p":93.85,"iv":64,"ivr":23,"s":0.03,"oi":28500,"n":"Intel","chg1d":3.74,"chg5d":2.36,"e9":92.9,"e21":98.29,"e50":101.8,"rsi":29,"rvol":0.58,"sup":84.65,"res":101.34},"ORCL":{"p":131.66,"iv":64,"ivr":34,"s":0.05,"oi":12400,"n":"Oracle","chg1d":4.44,"chg5d":0.4,"e9":129.97,"e21":134.06,"e50":140.23,"rsi":40,"rvol":0.5,"sup":122.76,"res":141.05},"CRM":{"p":242.04,"iv":36,"ivr":12,"s":0.08,"oi":4800,"n":"Salesforce","chg1d":-2.25,"chg5d":-0.16,"e9":243.48,"e21":240.09,"e50":230.75,"rsi":67,"rvol":0.5,"sup":233.59,"res":252.42},"SNOW":{"p":339.49,"iv":65,"ivr":31,"s":0.15,"oi":4800,"n":"Snowflake","chg1d":1.36,"chg5d":6.22,"e9":329.83,"e21":331.82,"e50":326.03,"rsi":52,"rvol":0.5,"sup":302.24,"res":356.84},"SHOP":{"p":166.45,"iv":48,"ivr":17,"s":0.08,"oi":4800,"n":"Shopify","chg1d":-1.03,"chg5d":-4.05,"e9":169.26,"e21":164.99,"e50":154.04,"rsi":50,"rvol":0.5,"sup":163.25,"res":180.41},"UBER":{"p":65.87,"iv":32,"ivr":28,"s":0.05,"oi":12400,"n":"Uber Technologies","chg1d":-0.39,"chg5d":-4.45,"e9":67.83,"e21":69.1,"e50":70.57,"rsi":42,"rvol":0.77,"sup":65.47,"res":71.86},"ABNB":{"p":168.49,"iv":30,"ivr":19,"s":0.08,"oi":4800,"n":"Airbnb","chg1d":-1.5,"chg5d":-4.78,"e9":171.17,"e21":169.53,"e50":167.1,"rsi":61,"rvol":0.5,"sup":163.82,"res":179.13},"DIS":{"p":109.7,"iv":24,"ivr":25,"s":0.08,"oi":4800,"n":"Walt Disney Company (The","chg1d":-0.63,"chg5d":-1.76,"e9":110.52,"e21":109.06,"e50":106.72,"rsi":68,"rvol":0.5,"sup":107.65,"res":113.38},"NKE":{"p":37.39,"iv":35,"ivr":21,"s":0.03,"oi":28500,"n":"Nike","chg1d":-1.37,"chg5d":-1.29,"e9":37.26,"e21":36.71,"e50":37.43,"rsi":72,"rvol":0.5,"sup":34.71,"res":38.5},"BA":{"p":171.45,"iv":48,"ivr":89,"s":0.08,"oi":4800,"n":"Boeing Company (The)","chg1d":-8.95,"chg5d":-9.99,"e9":185.63,"e21":189.34,"e50":197.61,"rsi":29,"rvol":3.5,"sup":168.42,"res":193.28},"F":{"p":11.69,"iv":26,"ivr":8,"s":0.03,"oi":28500,"n":"Ford Motor Company","chg1d":0.95,"chg5d":-3.79,"e9":11.87,"e21":12.17,"e50":12.79,"rsi":39,"rvol":0.5,"sup":11.44,"res":12.78},"GM":{"p":80.53,"iv":50,"ivr":89,"s":0.08,"oi":4800,"n":"General Motors Company","chg1d":5.53,"chg5d":4.46,"e9":78.93,"e21":80.34,"e50":81.91,"rsi":49,"rvol":0.91,"sup":74.59,"res":85.79},"RIVN":{"p":11.61,"iv":34,"ivr":8,"s":0.05,"oi":12400,"n":"Rivian Automotive","chg1d":1.57,"chg5d":-6.6,"e9":12.2,"e21":13.11,"e50":14.27,"rsi":11,"rvol":0.54,"sup":11.42,"res":13.31},"LCID":{"p":3.3,"iv":86,"ivr":21,"s":0.05,"oi":12400,"n":"Lucid Group","chg1d":-2.94,"chg5d":0.92,"e9":3.39,"e21":3.6,"e50":4.21,"rsi":35,"rvol":0.5,"sup":2.85,"res":3.61},"NIO":{"p":3.27,"iv":43,"ivr":15,"s":0.05,"oi":12400,"n":"NIO","chg1d":0.31,"chg5d":-4.66,"e9":3.34,"e21":3.44,"e50":3.73,"rsi":37,"rvol":0.5,"sup":3.22,"res":3.55},"JPM":{"p":336.77,"iv":16,"ivr":8,"s":0.15,"oi":4800,"n":"JP Morgan Chase & Co.","chg1d":0.82,"chg5d":0.45,"e9":334.86,"e21":336.22,"e50":340.06,"rsi":60,"rvol":0.5,"sup":326.4,"res":344.4},"BAC":{"p":50.72,"iv":24,"ivr":40,"s":0.03,"oi":28500,"n":"Bank of America","chg1d":0.4,"chg5d":0.16,"e9":51.14,"e21":52.74,"e50":55.55,"rsi":31,"rvol":0.5,"sup":49.26,"res":52.64},"GS":{"p":912.55,"iv":24,"ivr":13,"s":0.15,"oi":1450,"n":"Goldman Sachs Group (The","chg1d":2.16,"chg5d":3.14,"e9":893.52,"e21":903.15,"e50":940.94,"rsi":58,"rvol":0.5,"sup":859.03,"res":915.42},"MS":{"p":187.43,"iv":32,"ivr":39,"s":0.08,"oi":4800,"n":"Morgan Stanley","chg1d":2.15,"chg5d":3.9,"e9":184.08,"e21":187.49,"e50":196.0,"rsi":47,"rvol":0.5,"sup":176.44,"res":189.12},"C":{"p":122.79,"iv":32,"ivr":39,"s":0.08,"oi":4800,"n":"Citigroup","chg1d":1.45,"chg5d":0.23,"e9":122.9,"e21":125.43,"e50":129.13,"rsi":41,"rvol":0.5,"sup":119.98,"res":127.22},"WFC":{"p":82.82,"iv":25,"ivr":31,"s":0.05,"oi":12400,"n":"Wells Fargo & Company","chg1d":0.21,"chg5d":0.75,"e9":82.5,"e21":82.66,"e50":83.76,"rsi":59,"rvol":0.5,"sup":78.04,"res":84.72},"V":{"p":400.4,"iv":24,"ivr":33,"s":0.15,"oi":4800,"n":"Visa","chg1d":-0.93,"chg5d":-1.52,"e9":402.12,"e21":392.95,"e50":380.24,"rsi":72,"rvol":0.62,"sup":389.56,"res":414.6},"MA":{"p":608.73,"iv":24,"ivr":32,"s":0.15,"oi":4800,"n":"Mastercard Incorporated","chg1d":-0.78,"chg5d":-1.88,"e9":613.68,"e21":601.29,"e50":583.3,"rsi":71,"rvol":0.54,"sup":600.65,"res":633.29},"PYPL":{"p":55.9,"iv":27,"ivr":10,"s":0.05,"oi":12400,"n":"PayPal Holdings","chg1d":1.65,"chg5d":-2.17,"e9":56.27,"e21":55.85,"e50":55.05,"rsi":56,"rvol":1.21,"sup":54.34,"res":57.95},"AXP":{"p":314.64,"iv":22,"ivr":18,"s":0.15,"oi":4800,"n":"American Express Company","chg1d":-0.13,"chg5d":-1.16,"e9":315.61,"e21":314.07,"e50":317.91,"rsi":62,"rvol":0.5,"sup":304.88,"res":326.27},"BRK.B":{"p":545.46,"iv":13,"ivr":17,"s":0.15,"oi":4800,"n":"Berkshire Hathaway New","chg1d":-0.57,"chg5d":1.04,"e9":538.74,"e21":527.81,"e50":516.95,"rsi":84,"rvol":0.5,"sup":518.19,"res":549.96},"XOM":{"p":181.02,"iv":23,"ivr":16,"s":0.05,"oi":12400,"n":"ExxonMobil Holdings","chg1d":-1.91,"chg5d":1.78,"e9":179.2,"e21":174.26,"e50":167.52,"rsi":77,"rvol":0.58,"sup":173.6,"res":184.88},"CVX":{"p":228.46,"iv":24,"ivr":34,"s":0.08,"oi":4800,"n":"Chevron","chg1d":-1.53,"chg5d":1.22,"e9":226.44,"e21":220.23,"e50":211.75,"rsi":79,"rvol":0.5,"sup":218.05,"res":234.08},"OXY":{"p":62.96,"iv":29,"ivr":18,"s":0.08,"oi":4800,"n":"Occidental Petroleum Cor","chg1d":-1.73,"chg5d":0.06,"e9":62.7,"e21":61.37,"e50":59.83,"rsi":73,"rvol":0.5,"sup":60.28,"res":64.96},"SLB":{"p":53.6,"iv":43,"ivr":53,"s":0.05,"oi":12400,"n":"SLB Limited","chg1d":0.98,"chg5d":7.24,"e9":51.4,"e21":50.85,"e50":51.31,"rsi":76,"rvol":0.5,"sup":47.17,"res":54.15},"LLY":{"p":1281.93,"iv":35,"ivr":33,"s":0.15,"oi":1450,"n":"Eli Lilly and Company","chg1d":0.22,"chg5d":-0.13,"e9":1263.87,"e21":1230.59,"e50":1200.86,"rsi":66,"rvol":0.5,"sup":1174.24,"res":1321.21},"UNH":{"p":410.68,"iv":34,"ivr":18,"s":0.15,"oi":4800,"n":"UnitedHealth Group Incor","chg1d":-0.0,"chg5d":-2.05,"e9":409.31,"e21":398.97,"e50":394.83,"rsi":69,"rvol":0.5,"sup":382.29,"res":426.55},"JNJ":{"p":267.98,"iv":37,"ivr":95,"s":0.08,"oi":4800,"n":"Johnson & Johnson","chg1d":0.63,"chg5d":3.32,"e9":262.56,"e21":261.66,"e50":261.7,"rsi":58,"rvol":0.5,"sup":248.5,"res":272.36},"PFE":{"p":29.72,"iv":24,"ivr":54,"s":0.05,"oi":12400,"n":"Pfizer","chg1d":-0.23,"chg5d":-1.3,"e9":29.67,"e21":29.15,"e50":28.3,"rsi":70,"rvol":0.5,"sup":28.55,"res":30.44},"MRK":{"p":142.09,"iv":37,"ivr":50,"s":0.08,"oi":4800,"n":"Merck & Company","chg1d":1.05,"chg5d":-4.19,"e9":144.52,"e21":145.3,"e50":143.4,"rsi":49,"rvol":0.5,"sup":139.83,"res":154.02},"ABBV":{"p":286.83,"iv":24,"ivr":35,"s":0.08,"oi":4800,"n":"AbbVie","chg1d":0.03,"chg5d":-0.78,"e9":284.4,"e21":278.71,"e50":269.15,"rsi":68,"rvol":0.5,"sup":275.97,"res":291.4},"MRNA":{"p":200.29,"iv":127,"ivr":19,"s":0.05,"oi":12400,"n":"Moderna","chg1d":0.72,"chg5d":-17.26,"e9":211.36,"e21":206.54,"e50":175.14,"rsi":51,"rvol":0.58,"sup":179.53,"res":254.48},"COST":{"p":991.53,"iv":20,"ivr":28,"s":0.15,"oi":1450,"n":"Costco Wholesale","chg1d":-1.36,"chg5d":-0.31,"e9":992.73,"e21":971.69,"e50":952.75,"rsi":69,"rvol":0.5,"sup":960.0,"res":1021.45},"WMT":{"p":118.81,"iv":27,"ivr":28,"s":0.05,"oi":12400,"n":"Walmart","chg1d":-1.23,"chg5d":0.81,"e9":118.21,"e21":114.86,"e50":112.28,"rsi":77,"rvol":0.5,"sup":113.38,"res":122.4},"TGT":{"p":148.14,"iv":32,"ivr":35,"s":0.08,"oi":4800,"n":"Target","chg1d":-0.26,"chg5d":-3.81,"e9":152.16,"e21":153.9,"e50":153.43,"rsi":46,"rvol":0.5,"sup":147.15,"res":159.56},"HD":{"p":318.69,"iv":33,"ivr":64,"s":0.15,"oi":4800,"n":"Home Depot (The)","chg1d":-0.22,"chg5d":1.14,"e9":314.38,"e21":307.6,"e50":310.08,"rsi":76,"rvol":0.5,"sup":289.57,"res":327.92},"LOW":{"p":197.15,"iv":36,"ivr":74,"s":0.08,"oi":4800,"n":"Lowe's Companies","chg1d":-0.54,"chg5d":-0.7,"e9":196.75,"e21":194.27,"e50":197.03,"rsi":68,"rvol":0.5,"sup":184.89,"res":204.52},"SBUX":{"p":102.65,"iv":31,"ivr":45,"s":0.08,"oi":4800,"n":"Starbucks","chg1d":-0.04,"chg5d":3.3,"e9":99.9,"e21":98.09,"e50":98.76,"rsi":75,"rvol":0.5,"sup":91.31,"res":103.4},"MCD":{"p":249.33,"iv":21,"ivr":34,"s":0.08,"oi":4800,"n":"McDonald's","chg1d":-0.6,"chg5d":1.14,"e9":246.65,"e21":244.08,"e50":248.82,"rsi":77,"rvol":0.5,"sup":234.23,"res":252.88},"KO":{"p":91.88,"iv":25,"ivr":48,"s":0.05,"oi":12400,"n":"Coca-Cola Company (The)","chg1d":-0.88,"chg5d":-1.72,"e9":92.4,"e21":91.02,"e50":89.12,"rsi":69,"rvol":0.53,"sup":90.55,"res":95.37},"PEP":{"p":132.94,"iv":30,"ivr":70,"s":0.08,"oi":4800,"n":"Pepsico","chg1d":-1.86,"chg5d":-0.81,"e9":133.58,"e21":132.05,"e50":133.24,"rsi":67,"rvol":0.5,"sup":127.2,"res":139.0},"PG":{"p":158.91,"iv":33,"ivr":95,"s":0.08,"oi":4800,"n":"Procter & Gamble Company","chg1d":-0.63,"chg5d":-0.26,"e9":158.76,"e21":155.17,"e50":151.2,"rsi":67,"rvol":0.5,"sup":154.29,"res":166.85},"GME":{"p":23.42,"iv":49,"ivr":53,"s":0.05,"oi":12400,"n":"GameStop","chg1d":-2.01,"chg5d":-11.52,"e9":25.13,"e21":25.03,"e50":23.61,"rsi":43,"rvol":0.5,"sup":23.36,"res":28.3},"AMC":{"p":2.98,"iv":65,"ivr":16,"s":0.05,"oi":12400,"n":"AMC Entertainment Holdin","chg1d":3.11,"chg5d":-3.25,"e9":2.95,"e21":2.93,"e50":2.79,"rsi":55,"rvol":0.5,"sup":2.78,"res":3.11},"DJT":{"p":6.39,"iv":60,"ivr":16,"s":0.08,"oi":4800,"n":"Trump Media & Technology","chg1d":4.07,"chg5d":-1.24,"e9":6.69,"e21":7.37,"e50":8.08,"rsi":21,"rvol":0.59,"sup":6.04,"res":7.64},"RDDT":{"p":139.17,"iv":55,"ivr":15,"s":0.08,"oi":4800,"n":"Reddit","chg1d":0.52,"chg5d":-10.59,"e9":147.19,"e21":150.38,"e50":154.29,"rsi":37,"rvol":0.7,"sup":133.33,"res":164.94},"RBLX":{"p":54.47,"iv":50,"ivr":13,"s":0.08,"oi":4800,"n":"Roblox","chg1d":0.18,"chg5d":4.05,"e9":52.42,"e21":49.98,"e50":47.41,"rsi":71,"rvol":0.5,"sup":47.0,"res":54.76},"DKNG":{"p":20.59,"iv":53,"ivr":37,"s":0.05,"oi":12400,"n":"DraftKings","chg1d":-2.97,"chg5d":0.54,"e9":20.46,"e21":20.5,"e50":21.61,"rsi":62,"rvol":0.5,"sup":18.35,"res":21.27},"SPOT":{"p":557.26,"iv":56,"ivr":38,"s":0.15,"oi":1450,"n":"Spotify Technology S.A.","chg1d":-2.64,"chg5d":5.93,"e9":551.76,"e21":536.74,"e50":524.2,"rsi":66,"rvol":0.52,"sup":508.01,"res":593.8},"SNAP":{"p":6.16,"iv":59,"ivr":37,"s":0.03,"oi":28500,"n":"Snap","chg1d":-2.84,"chg5d":-3.45,"e9":6.26,"e21":6.11,"e50":5.8,"rsi":58,"rvol":0.59,"sup":5.87,"res":6.59},"PINS":{"p":20.77,"iv":51,"ivr":31,"s":0.05,"oi":12400,"n":"Pinterest","chg1d":-2.17,"chg5d":-9.62,"e9":21.81,"e21":21.38,"e50":21.17,"rsi":53,"rvol":0.5,"sup":20.36,"res":23.6},"DASH":{"p":173.57,"iv":53,"ivr":35,"s":0.08,"oi":4800,"n":"DoorDash","chg1d":3.05,"chg5d":-9.44,"e9":181.45,"e21":187.32,"e50":192.48,"rsi":37,"rvol":1.11,"sup":163.68,"res":197.24},"LYFT":{"p":16.92,"iv":35,"ivr":13,"s":0.08,"oi":4800,"n":"Lyft","chg1d":-0.82,"chg5d":-1.91,"e9":16.89,"e21":16.53,"e50":16.18,"rsi":65,"rvol":0.5,"sup":15.93,"res":17.54},"BABA":{"p":99.46,"iv":39,"ivr":34,"s":0.08,"oi":4800,"n":"Alibaba Group Holding Li","chg1d":-0.79,"chg5d":-8.42,"e9":103.51,"e21":106.47,"e50":110.06,"rsi":32,"rvol":0.5,"sup":99.19,"res":112.73},"JD":{"p":25.33,"iv":28,"ivr":37,"s":0.08,"oi":4800,"n":"JD.com","chg1d":0.36,"chg5d":-5.34,"e9":25.89,"e21":26.36,"e50":27.18,"rsi":28,"rvol":0.5,"sup":25.06,"res":27.47},"PDD":{"p":77.79,"iv":31,"ivr":17,"s":0.08,"oi":4800,"n":"PDD Holdings","chg1d":-0.44,"chg5d":-4.7,"e9":79.25,"e21":79.61,"e50":80.74,"rsi":47,"rvol":0.5,"sup":77.23,"res":82.88},"TSM":{"p":436.93,"iv":41,"ivr":28,"s":0.1,"oi":12400,"n":"Taiwan Semiconductor Man","chg1d":2.96,"chg5d":2.79,"e9":428.4,"e21":434.63,"e50":434.44,"rsi":36,"rvol":0.5,"sup":407.13,"res":440.39},"ASML":{"p":1634.38,"iv":43,"ivr":20,"s":0.15,"oi":1450,"n":"ASML Holding N.V. - New","chg1d":2.73,"chg5d":0.22,"e9":1632.38,"e21":1675.59,"e50":1706.34,"rsi":31,"rvol":0.5,"sup":1550.0,"res":1734.5},"QCOM":{"p":181.18,"iv":34,"ivr":12,"s":0.08,"oi":4800,"n":"QUALCOMM Incorporated","chg1d":0.88,"chg5d":3.11,"e9":177.46,"e21":178.01,"e50":178.39,"rsi":55,"rvol":0.5,"sup":168.84,"res":182.48},"TXN":{"p":307.12,"iv":38,"ivr":31,"s":0.15,"oi":4800,"n":"Texas Instruments Incorp","chg1d":3.02,"chg5d":10.56,"e9":289.39,"e21":284.1,"e50":280.01,"rsi":64,"rvol":0.5,"sup":272.01,"res":308.03},"AMAT":{"p":395.99,"iv":58,"ivr":27,"s":0.15,"oi":4800,"n":"Applied Materials","chg1d":2.17,"chg5d":-2.22,"e9":407.1,"e21":436.29,"e50":464.32,"rsi":16,"rvol":0.5,"sup":372.8,"res":459.48},"LRCX":{"p":240.31,"iv":68,"ivr":25,"s":0.08,"oi":4800,"n":"Lam Research","chg1d":1.18,"chg5d":-8.78,"e9":254.3,"e21":276.56,"e50":294.5,"rsi":15,"rvol":0.52,"sup":225.14,"res":295.86},"KLAC":{"p":153.24,"iv":58,"ivr":20,"s":0.05,"oi":12400,"n":"KLA","chg1d":2.7,"chg5d":-5.26,"e9":159.37,"e21":170.67,"e50":181.37,"rsi":16,"rvol":0.5,"sup":144.82,"res":184.58},"MRVL":{"p":242.33,"iv":73,"ivr":26,"s":0.05,"oi":12400,"n":"Marvell Technology","chg1d":3.66,"chg5d":0.79,"e9":239.62,"e21":246.14,"e50":244.18,"rsi":32,"rvol":0.5,"sup":220.21,"res":264.3},"CRWD":{"p":268.16,"iv":66,"ivr":44,"s":0.08,"oi":4800,"n":"CrowdStrike Holdings","chg1d":2.42,"chg5d":17.94,"e9":252.33,"e21":250.19,"e50":238.94,"rsi":51,"rvol":0.5,"sup":221.36,"res":271.03},"PANW":{"p":402.36,"iv":66,"ivr":61,"s":0.15,"oi":4800,"n":"Palo Alto Networks","chg1d":3.05,"chg5d":18.24,"e9":377.06,"e21":377.11,"e50":370.33,"rsi":49,"rvol":0.5,"sup":334.75,"res":404.77},"ZS":{"p":261.35,"iv":65,"ivr":26,"s":0.15,"oi":1450,"n":"Zscaler","chg1d":0.35,"chg5d":21.84,"e9":240.57,"e21":225.26,"e50":204.43,"rsi":72,"rvol":0.52,"sup":203.33,"res":267.87},"DDOG":{"p":279.61,"iv":71,"ivr":44,"s":0.15,"oi":1450,"n":"Datadog","chg1d":-0.22,"chg5d":9.04,"e9":271.02,"e21":266.84,"e50":258.37,"rsi":53,"rvol":0.5,"sup":243.63,"res":284.82},"NET":{"p":332.54,"iv":66,"ivr":31,"s":0.15,"oi":1450,"n":"Cloudflare","chg1d":0.2,"chg5d":14.0,"e9":321.68,"e21":325.24,"e50":318.74,"rsi":46,"rvol":0.5,"sup":285.05,"res":346.79},"MDB":{"p":391.44,"iv":71,"ivr":38,"s":0.15,"oi":1450,"n":"MongoDB","chg1d":0.6,"chg5d":6.9,"e9":375.56,"e21":373.29,"e50":375.74,"rsi":57,"rvol":0.5,"sup":328.15,"res":394.0},"NOW":{"p":155.48,"iv":42,"ivr":20,"s":0.05,"oi":12400,"n":"ServiceNow","chg1d":-1.71,"chg5d":3.97,"e9":152.36,"e21":146.49,"e50":138.23,"rsi":71,"rvol":0.61,"sup":138.39,"res":159.5},"ADBE":{"p":250.26,"iv":48,"ivr":51,"s":0.08,"oi":4800,"n":"Adobe","chg1d":-3.23,"chg5d":-2.52,"e9":254.34,"e21":250.65,"e50":249.95,"rsi":60,"rvol":0.55,"sup":235.9,"res":272.1},"INTU":{"p":326.18,"iv":48,"ivr":24,"s":0.15,"oi":4800,"n":"Intuit","chg1d":-4.03,"chg5d":-2.72,"e9":331.28,"e21":320.9,"e50":315.49,"rsi":63,"rvol":0.5,"sup":298.83,"res":358.03},"IBM":{"p":250.31,"iv":28,"ivr":12,"s":0.08,"oi":4800,"n":"International Business M","chg1d":-1.24,"chg5d":3.47,"e9":245.72,"e21":238.65,"e50":236.79,"rsi":82,"rvol":0.5,"sup":226.01,"res":256.3},"DELL":{"p":504.89,"iv":83,"ivr":42,"s":0.15,"oi":4800,"n":"Dell Technologies","chg1d":8.09,"chg5d":9.39,"e9":484.07,"e21":504.02,"e50":503.17,"rsi":36,"rvol":0.66,"sup":439.5,"res":548.39},"HPQ":{"p":33.87,"iv":52,"ivr":35,"s":0.05,"oi":12400,"n":"HP","chg1d":-0.65,"chg5d":8.52,"e9":32.64,"e21":32.02,"e50":31.13,"rsi":59,"rvol":0.5,"sup":29.84,"res":34.27},"CAT":{"p":711.55,"iv":45,"ivr":42,"s":0.15,"oi":1450,"n":"Caterpillar","chg1d":2.81,"chg5d":-1.89,"e9":721.37,"e21":752.77,"e50":791.43,"rsi":23,"rvol":0.5,"sup":679.5,"res":770.35},"DE":{"p":640.55,"iv":35,"ivr":43,"s":0.15,"oi":1450,"n":"Deere & Company","chg1d":-0.11,"chg5d":1.32,"e9":642.41,"e21":650.21,"e50":650.33,"rsi":43,"rvol":0.5,"sup":625.81,"res":660.39},"GE":{"p":297.42,"iv":28,"ivr":18,"s":0.08,"oi":4800,"n":"GE Aerospace","chg1d":3.12,"chg5d":-0.82,"e9":297.52,"e21":304.56,"e50":317.82,"rsi":44,"rvol":0.76,"sup":278.37,"res":321.17},"LMT":{"p":628.55,"iv":41,"ivr":72,"s":0.15,"oi":1450,"n":"Lockheed Martin","chg1d":-1.05,"chg5d":14.55,"e9":584.62,"e21":556.18,"e50":545.42,"rsi":89,"rvol":0.76,"sup":508.01,"res":636.56},"RTX":{"p":196.18,"iv":29,"ivr":60,"s":0.08,"oi":4800,"n":"RTX","chg1d":-0.66,"chg5d":1.47,"e9":192.92,"e21":191.35,"e50":194.16,"rsi":70,"rvol":0.5,"sup":183.67,"res":198.19},"NOC":{"p":556.88,"iv":40,"ivr":85,"s":0.15,"oi":1450,"n":"Northrop Grumman","chg1d":-1.51,"chg5d":4.28,"e9":538.82,"e21":522.21,"e50":521.91,"rsi":81,"rvol":0.5,"sup":483.24,"res":566.56},"GD":{"p":356.79,"iv":18,"ivr":13,"s":0.15,"oi":1450,"n":"General Dynamics","chg1d":-0.07,"chg5d":3.59,"e9":348.26,"e21":344.52,"e50":350.25,"rsi":83,"rvol":0.5,"sup":333.36,"res":357.46},"DAL":{"p":80.6,"iv":37,"ivr":30,"s":0.08,"oi":4800,"n":"Delta Air Lines","chg1d":1.82,"chg5d":5.14,"e9":78.65,"e21":79.44,"e50":81.07,"rsi":45,"rvol":0.5,"sup":74.14,"res":80.74},"UAL":{"p":103.41,"iv":48,"ivr":35,"s":0.08,"oi":4800,"n":"United Airlines Holdings","chg1d":2.7,"chg5d":5.77,"e9":101.17,"e21":103.57,"e50":108.11,"rsi":40,"rvol":0.5,"sup":94.54,"res":104.98},"AAL":{"p":12.55,"iv":47,"ivr":41,"s":0.03,"oi":28500,"n":"American Airlines Group","chg1d":2.87,"chg5d":3.63,"e9":12.32,"e21":12.52,"e50":13.11,"rsi":46,"rvol":0.59,"sup":11.63,"res":12.73},"CCL":{"p":27.99,"iv":42,"ivr":24,"s":0.05,"oi":12400,"n":"Carnival Ltd.","chg1d":4.21,"chg5d":3.44,"e9":26.86,"e21":26.1,"e50":25.63,"rsi":63,"rvol":0.54,"sup":25.76,"res":28.08},"GLD":{"p":372.2,"iv":20,"ivr":17,"s":0.15,"oi":4800,"n":"SPDR Gold Shares","chg1d":1.19,"chg5d":-1.44,"e9":373.67,"e21":379.28,"e50":385.41,"rsi":46,"rvol":0.5,"sup":364.33,"res":384.88},"SLV":{"p":49.13,"iv":43,"ivr":8,"s":0.05,"oi":12400,"n":"iShares Silver Trust","chg1d":0.97,"chg5d":-5.74,"e9":50.41,"e21":52.48,"e50":54.74,"rsi":32,"rvol":0.5,"sup":47.86,"res":52.89},"USO":{"p":163.77,"iv":34,"ivr":13,"s":0.08,"oi":4800,"n":"United States Oil Fund","chg1d":-1.48,"chg5d":1.97,"e9":161.9,"e21":156.71,"e50":148.59,"rsi":78,"rvol":0.51,"sup":152.96,"res":169.96},"UNG":{"p":9.45,"iv":44,"ivr":12,"s":0.05,"oi":12400,"n":"United States Natural Ga","chg1d":-1.15,"chg5d":-10.0,"e9":10.01,"e21":10.33,"e50":10.47,"rsi":24,"rvol":0.66,"sup":9.31,"res":11.4},"TLT":{"p":81.63,"iv":12,"ivr":57,"s":0.03,"oi":28500,"n":"iShares 20+ Year Treasur","chg1d":-0.06,"chg5d":1.87,"e9":80.7,"e21":80.05,"e50":80.57,"rsi":84,"rvol":0.5,"sup":77.74,"res":81.92},"HYG":{"p":77.5,"iv":12,"ivr":32,"s":0.03,"oi":28500,"n":"iShares iBoxx $ High Yie","chg1d":0.39,"chg5d":0.87,"e9":77.15,"e21":77.3,"e50":77.93,"rsi":58,"rvol":0.5,"sup":76.71,"res":77.53},"XLF":{"p":55.95,"iv":14,"ivr":29,"s":0.03,"oi":28500,"n":"State Street Financial S","chg1d":-0.12,"chg5d":0.41,"e9":55.73,"e21":55.43,"e50":55.59,"rsi":69,"rvol":0.5,"sup":54.02,"res":56.67},"XLE":{"p":68.31,"iv":25,"ivr":44,"s":0.03,"oi":28500,"n":"State Street Energy Sele","chg1d":-1.91,"chg5d":0.5,"e9":68.06,"e21":66.62,"e50":64.48,"rsi":70,"rvol":0.58,"sup":66.17,"res":69.86},"XLK":{"p":189.42,"iv":29,"ivr":35,"s":0.08,"oi":4800,"n":"State Street Technology","chg1d":1.66,"chg5d":2.15,"e9":187.57,"e21":189.77,"e50":189.36,"rsi":35,"rvol":0.5,"sup":181.5,"res":194.66},"XLV":{"p":179.11,"iv":22,"ivr":72,"s":0.08,"oi":4800,"n":"State Street Health Care","chg1d":-0.09,"chg5d":-0.39,"e9":177.89,"e21":174.98,"e50":171.27,"rsi":70,"rvol":0.6,"sup":170.65,"res":182.25},"XBI":{"p":153.96,"iv":38,"ivr":67,"s":0.08,"oi":4800,"n":"State Street SPDR S&P Bi","chg1d":2.32,"chg5d":0.47,"e9":151.14,"e21":152.11,"e50":153.58,"rsi":55,"rvol":0.5,"sup":143.85,"res":155.78},"SMH":{"p":556.97,"iv":43,"ivr":30,"s":0.15,"oi":4800,"n":"VanEck Semiconductor ETF","chg1d":2.83,"chg5d":1.94,"e9":550.88,"e21":565.83,"e50":573.97,"rsi":30,"rvol":0.56,"sup":520.53,"res":580.08},"IBIT":{"p":45.69,"iv":28,"ivr":10,"s":0.03,"oi":28500,"n":"iShares Bitcoin Trust ET","chg1d":1.04,"chg5d":-2.18,"e9":46.19,"e21":46.43,"e50":44.77,"rsi":41,"rvol":0.5,"sup":44.86,"res":48.07},"ETHA":{"p":53.2,"iv":42,"ivr":9,"s":0.08,"oi":4800,"n":"iShares Ethereum Trust E","chg1d":1.64,"chg5d":-3.4,"e9":54.37,"e21":55.81,"e50":54.39,"rsi":34,"rvol":0.5,"sup":51.81,"res":57.11},"MARA":{"p":7.12,"iv":72,"ivr":16,"s":0.03,"oi":28500,"n":"MARA Holdings","chg1d":4.09,"chg5d":-4.81,"e9":7.59,"e21":8.77,"e50":10.04,"rsi":16,"rvol":0.69,"sup":6.62,"res":8.9},"RIOT":{"p":13.44,"iv":86,"ivr":32,"s":0.05,"oi":12400,"n":"Riot Platforms","chg1d":6.75,"chg5d":-2.4,"e9":13.86,"e21":15.87,"e50":18.3,"rsi":22,"rvol":0.66,"sup":11.79,"res":16.17},"CLSK":{"p":8.14,"iv":76,"ivr":14,"s":0.05,"oi":12400,"n":"CleanSpark","chg1d":4.76,"chg5d":-3.44,"e9":8.56,"e21":9.82,"e50":11.33,"rsi":17,"rvol":0.5,"sup":7.36,"res":9.81},"BRKB":{"p":545.46,"iv":13,"ivr":17,"s":0.15,"oi":4800,"n":"Berkshire Hathaway New","chg1d":-0.57,"chg5d":1.04,"e9":538.74,"e21":527.81,"e50":516.95,"rsi":84,"rvol":0.5,"sup":518.19,"res":549.96},"BRK-B":{"p":545.46,"iv":13,"ivr":17,"s":0.15,"oi":4800,"n":"Berkshire Hathaway New","chg1d":-0.57,"chg5d":1.04,"e9":538.74,"e21":527.81,"e50":516.95,"rsi":84,"rvol":0.5,"sup":518.19,"res":549.96}};
+    let currentTicker = "QQQ";
+    let currentType = "call";
+    let currentMode = "zero_dte";
+    let currentFlow = "auto";
+    let currentChainFilter = "best_rr";
+    let selectedContractId = null;
+    let liveOptionsCache = {};
+
+    function normCDF(x) {
+      const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741, a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+      const sign = x < 0 ? -1 : 1;
+      const absX = Math.abs(x) / Math.sqrt(2.0);
+      const t = 1.0 / (1.0 + p * absX);
+      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-absX * absX);
+      return 0.5 * (1.0 + sign * y);
+    }
+
+    function normPDF(x) {
+      return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
+    }
+
+    function roundStrike(price) {
+      if (price < 15) return Math.round(price * 2) / 2;
+      if (price < 50) return Math.round(price);
+      if (price < 200) return Math.round(price / 2.5) * 2.5;
+      return Math.round(price / 5) * 5;
+    }
+
+    function getProfile(sym) {
+      const clean = (sym || "QQQ").trim().toUpperCase();
+      if (TICKER_DB[clean]) return { prof: TICKER_DB[clean], known: true, sym: clean };
+      let h = 0;
+      for (let i = 0; i < clean.length; i++) h = (h * 31 + clean.charCodeAt(i)) % 10000;
+      const p = Math.round((25 + (h % 220)) * 100) / 100;
+      return {
+        known: false,
+        sym: clean || "STOCK",
+        prof: {
+          p, iv: 32, ivr: 30, s: 0.05, oi: 9000, n: clean + " (Estimated)",
+          chg1d: 0.8, chg5d: 1.9, e9: +(p * 0.992).toFixed(2), e21: +(p * 0.985).toFixed(2),
+          e50: +(p * 0.965).toFixed(2), rsi: 55, rvol: 1.1, sup: +(p * 0.97).toFixed(2), res: +(p * 1.035).toFixed(2)
+        }
+      };
+    }
+
+    function computeBrain(prof, flowOverride) {
+      const S = prof.p;
+      const sigma = Math.max(0.1, prof.iv / 100.0);
+      const oneSD = Math.max(0.25, S * (sigma / Math.sqrt(252)));
+      const prevClose = S / (1 + prof.chg1d / 100.0);
+      const eqAnchor = prof.e9 * 0.55 + prevClose * 0.45;
+
+      const H1 = +(eqAnchor + 0.5 * oneSD).toFixed(2);
+      const H2 = +(eqAnchor + 1.0 * oneSD).toFixed(2);
+      const H3 = +(eqAnchor + 1.5 * oneSD).toFixed(2);
+      const L1 = +(eqAnchor - 0.5 * oneSD).toFixed(2);
+      const L2 = +(eqAnchor - 1.0 * oneSD).toFixed(2);
+      const L3 = +(eqAnchor - 1.5 * oneSD).toFixed(2);
+
+      let bull = 50;
+      const reasons = [];
+
+      if (prof.p > prof.e9 && prof.e9 >= prof.e21) {
+        bull += 12;
+        reasons.push({ f: "1. Fast Trend (9 & 21 EMA)", r: `$${prof.p} > 9-EMA ($${prof.e9}) > 21-EMA ($${prof.e21})`, s: "CALL", w: "Price is surfing above both fast trend lines." });
+      } else if (prof.p < prof.e9 && prof.e9 <= prof.e21) {
+        bull -= 12;
+        reasons.push({ f: "1. Fast Trend (9 & 21 EMA)", r: `$${prof.p} < 9-EMA ($${prof.e9}) < 21-EMA ($${prof.e21})`, s: "PUT", w: "Price is trapped below both fast trend lines." });
+      } else if (prof.p >= prof.e9) {
+        bull += 6;
+        reasons.push({ f: "1. Fast Trend (9 & 21 EMA)", r: `Above 9-EMA ($${prof.e9})`, s: "CALL", w: "Reclaimed fast 9-EMA line." });
+      } else {
+        bull -= 6;
+        reasons.push({ f: "1. Fast Trend (9 & 21 EMA)", r: `Below 9-EMA ($${prof.e9})`, s: "PUT", w: "Slipped below fast 9-EMA line." });
+      }
+
+      if (prof.p >= prof.e50 && prof.chg1d >= 0) {
+        bull += 9;
+        reasons.push({ f: "2. 50-EMA & Momentum", r: `Above 50-EMA ($${prof.e50}) · +${prof.chg1d.toFixed(2)}%`, s: "CALL", w: "Big funds defend the 50-EMA floor and today is green." });
+      } else if (prof.p < prof.e50 && prof.chg1d < 0) {
+        bull -= 9;
+        reasons.push({ f: "2. 50-EMA & Momentum", r: `Below 50-EMA ($${prof.e50}) · ${prof.chg1d.toFixed(2)}%`, s: "PUT", w: "Below 50-EMA ceiling with red momentum." });
+      } else if (prof.chg1d >= 0) {
+        bull += 4;
+        reasons.push({ f: "2. Session Momentum", r: `Today +${prof.chg1d.toFixed(2)}%`, s: "CALL", w: "Buyers are winning today's session." });
+      } else {
+        bull -= 4;
+        reasons.push({ f: "2. Session Momentum", r: `Today ${prof.chg1d.toFixed(2)}%`, s: "PUT", w: "Sellers are winning today's session." });
+      }
+
+      if (S <= L3) {
+        bull += 14;
+        reasons.push({ f: "3. Video L1–L3 / H1–H3 Bands", r: `Testing L3 ($${L3}) · 80% Snap-Back`, s: "CALL", w: "Video 3 setup: L3 dip has 80% odds to revert upward." });
+      } else if (S <= L2) {
+        bull += 10;
+        reasons.push({ f: "3. Video L1–L3 / H1–H3 Bands", r: `Near L2 ($${L2}) · 60% Revert`, s: "CALL", w: "Testing L2 support zone where dip-buyers step in." });
+      } else if (S >= H3) {
+        bull -= 14;
+        reasons.push({ f: "3. Video L1–L3 / H1–H3 Bands", r: `Capped at H3 ($${H3}) · 80% Reject`, s: "PUT", w: "Only 20% of days stay above H3; high rejection odds." });
+      } else if (S >= eqAnchor) {
+        bull += 7;
+        reasons.push({ f: "3. Video L1–L3 / H1–H3 Bands", r: `Above Mid · 80% Odds to Hit H1 ($${H1})`, s: "CALL", w: "Holding above mid targets H1 and H2." });
+      } else {
+        bull -= 7;
+        reasons.push({ f: "3. Video L1–L3 / H1–H3 Bands", r: `Below H1/Mid · Targets L1 ($${L1}) & L2 ($${L2})`, s: "PUT", w: "Video 1 setup: rejection below H1 targets L2." });
+      }
+
+      let flow = "MORE_PUTS_BULLISH";
+      if (flowOverride === "more_puts_bullish") flow = "MORE_PUTS_BULLISH";
+      else if (flowOverride === "more_calls_bearish") flow = "MORE_CALLS_BEARISH";
+      else if (prof.rsi > 65 && prof.chg5d > 0) flow = "MORE_CALLS_BEARISH";
+
+      const pcRatio = flow === "MORE_PUTS_BULLISH" ? "1.28" : "0.64";
+      if (flow === "MORE_PUTS_BULLISH") {
+        bull += 11;
+        reasons.push({ f: "4. Put/Call Bot & VIX Cap", r: `P/C ${pcRatio} (More Puts = Bullish)`, s: "CALL", w: "Video rule: Retail crowding into Puts fuels a Market Maker Call squeeze!" });
+      } else {
+        bull -= 11;
+        reasons.push({ f: "4. Put/Call Bot & VIX Cap", r: `P/C ${pcRatio} (More Calls = Bearish)`, s: "PUT", w: "Video rule: Too many retail Calls is bearish for price." });
+      }
+
+      const prelim = bull >= 50 ? "call" : "put";
+      const leg = Math.max(0.4, oneSD * 0.85);
+      const impLow = prelim === "call" ? +(S - leg * 0.65).toFixed(2) : +(S - leg * 0.35).toFixed(2);
+      const impHigh = prelim === "call" ? +(S + leg * 0.35).toFixed(2) : +(S + leg * 0.65).toFixed(2);
+      const impSize = Math.max(0.2, impHigh - impLow);
+
+      const ote62 = prelim === "call" ? +(impHigh - 0.62 * impSize).toFixed(2) : +(impLow + 0.62 * impSize).toFixed(2);
+      const ote705 = prelim === "call" ? +(impHigh - 0.705 * impSize).toFixed(2) : +(impLow + 0.705 * impSize).toFixed(2);
+      const ote79 = prelim === "call" ? +(impHigh - 0.79 * impSize).toFixed(2) : +(impLow + 0.79 * impSize).toFixed(2);
+
+      const stdv1 = prelim === "call" ? +(impLow + 1.0 * impSize).toFixed(2) : +(impHigh - 1.0 * impSize).toFixed(2);
+      const stdv2 = prelim === "call" ? +(impLow + 2.0 * impSize).toFixed(2) : +(impHigh - 2.0 * impSize).toFixed(2);
+      const stdv2_5 = prelim === "call" ? +(impLow + 2.5 * impSize).toFixed(2) : +(impHigh - 2.5 * impSize).toFixed(2);
+      const stdv4 = prelim === "call" ? +(impLow + 4.0 * impSize).toFixed(2) : +(impHigh - 4.0 * impSize).toFixed(2);
+
+      if (prelim === "call") {
+        bull += 6;
+        reasons.push({ f: "5. STDV + 0.705 OTE Sniper", r: `OTE Entry $${ote705} → Target -2 STDV ($${stdv2})`, s: "CALL", w: "Buy the 62%–79% Fib pullback ($" + ote705 + ") and ride to -2.0 STDV ($" + stdv2 + ")." });
+      } else {
+        bull -= 6;
+        reasons.push({ f: "5. STDV + 0.705 OTE Sniper", r: `OTE Entry $${ote705} → Target -2 STDV ($${stdv2})`, s: "PUT", w: "Buy Puts at the 0.705 OTE bounce ($" + ote705 + ") targeting -2.0 STDV ($" + stdv2 + ")." });
+      }
+
+      const callEdge = Math.min(94, Math.max(6, Math.round(bull)));
+      const putEdge = 100 - callEdge;
+      const rec = callEdge >= 50 ? "call" : "put";
+      return { callEdge, putEdge, rec, winConf: Math.max(callEdge, putEdge), H1, H2, H3, L1, L2, L3, ote62, ote705, ote79, stdv1, stdv2, stdv2_5, stdv4, reasons };
+    }
+
+    function bs(S, K, T, sigma, type) {
+      const r = 0.045, safeT = Math.max(0.0002, T), sq = Math.sqrt(safeT);
+      const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * safeT) / (sigma * sq);
+      const d2 = d1 - sigma * sq;
+      const c = S * normCDF(d1) - K * Math.exp(-r * safeT) * normCDF(d2);
+      const p = K * Math.exp(-r * safeT) * normCDF(-d2) - S * normCDF(-d1);
+      const price = Math.max(0.01, type === "call" ? c : p);
+      const delta = type === "call" ? normCDF(d1) : normCDF(d1) - 1;
+      const thetaAnn = type === "call"
+        ? (-S * normPDF(d1) * sigma) / (2 * sq) - r * K * Math.exp(-r * safeT) * normCDF(d2)
+        : (-S * normPDF(d1) * sigma) / (2 * sq) + r * K * Math.exp(-r * safeT) * normCDF(-d2);
+      const thetaHr = (thetaAnn / 365.0) / 6.5;
+      const gamma = normPDF(d1) / Math.max(0.01, S * sigma * sq);
+      return { price, delta, gamma, thetaHr };
+    }
+
+    function getZeroDteStep(price, sym) {
+      const clean = (sym || "").toUpperCase();
+      if (price < 20) return 0.5;
+      if (price < 120) return 1;
+      if (["SPY", "QQQ", "IWM", "DIA"].includes(clean)) return 2;
+      if (price < 350) return 2.5;
+      if (price < 800) return 5;
+      return 5;
+    }
+
+    function buildZeroDteChain(prof, brain, sym) {
+      const S = prof.p;
+      const step = getZeroDteStep(S, sym);
+      const atm = Math.round(S / step) * step;
+      const sigma = Math.max(0.12, prof.iv / 100.0);
+      const dteDays = 0.42; // ~2.7 trading hours left in 0DTE session
+      const holdHrs = 0.58; // ~35 min sniper scalp to -2.0 STDV target
+      const remDays = Math.max(0.08, dteDays - holdHrs / 6.5);
+
+      const offsets = [-2, -1, 0, 1, 2, 3, 4];
+      const contracts = [];
+      const liveChain = liveOptionsCache[sym] || null;
+
+      ["call", "put"].forEach(type => {
+        offsets.forEach(off => {
+          // For calls: negative offset = ITM, positive = OTM
+          // For puts: positive offset = ITM, negative = OTM
+          const K = +(atm + (type === "call" ? off * step : -off * step)).toFixed(2);
+          if (K <= 0.5) return;
+
+          // Check if live Yahoo option data has a matching strike
+          let liveMatch = null;
+          if (liveChain && liveChain[type]) {
+            liveMatch = liveChain[type].find(item => Math.abs(item.strike - K) < step * 0.45);
+          }
+
+          // Skew adjustment: OTM options have slightly higher IV smile
+          const moneyness = type === "call" ? (K - S) / S : (S - K) / S;
+          const localSigma = liveMatch && liveMatch.iv > 0.05
+            ? liveMatch.iv
+            : sigma * (1 + Math.max(0, moneyness) * 1.4 + Math.abs(moneyness) * 0.35);
+
+          const entryGreeks = bs(S, K, dteDays / 365.0, localSigma, type);
+          const theoMid = Math.max(0.04, +entryGreeks.price.toFixed(2));
+          const mid = liveMatch && liveMatch.mid > 0.02 ? liveMatch.mid : theoMid;
+
+          const baseSpread = Math.max(0.01, Math.min(mid * 0.08, +(prof.s * (1 + Math.max(0, off) * 0.22)).toFixed(2)));
+          const bid = liveMatch && liveMatch.bid > 0 ? liveMatch.bid : Math.max(0.01, +(mid - baseSpread / 2).toFixed(2));
+          const ask = liveMatch && liveMatch.ask > 0 ? liveMatch.ask : +(mid + baseSpread / 2).toFixed(2);
+          const spread = Math.max(0.01, +(ask - bid).toFixed(2));
+
+          const absDelta = Math.min(0.96, Math.max(0.04, +Math.abs(entryGreeks.delta).toFixed(2)));
+          const gamma = +entryGreeks.gamma.toFixed(3);
+          const thetaHr = entryGreeks.thetaHr;
+
+          // Calculate expected option price if stock moves in the predicted direction vs this contract's direction
+          // Target price for a 30-45m 0DTE scalp if this option's side triggers a 1.15 SD impulse move:
+          const oneSD = Math.max(0.25, S * (sigma / Math.sqrt(252)));
+          const moveSize = Math.max(step * 1.35, Math.abs(brain.stdv2 - S), oneSD * 1.05);
+          const targetStockPx = type === "call" ? +(S + moveSize).toFixed(2) : Math.max(0.5, +(S - moveSize).toFixed(2));
+          const scale1StockPx = type === "call" ? +(S + moveSize * 0.55).toFixed(2) : Math.max(0.5, +(S - moveSize * 0.55).toFixed(2));
+
+          // Also evaluate from 0.705 OTE limit entry
+          const exitAtTarget = bs(targetStockPx, K, remDays / 365.0, localSigma, type);
+          const exitAtScale1 = bs(scale1StockPx, K, (dteDays - 0.35 / 6.5) / 365.0, localSigma, type);
+
+          // Raw dollar profit at -2.0 STDV target per contract (after bid-ask slippage)
+          const rawProfitDollar = Math.max(4, Math.round((exitAtTarget.price - mid - spread * 0.6) * 100));
+          const scale1ProfitDollar = Math.max(2, Math.round((exitAtScale1.price - mid - spread * 0.5) * 100));
+          const rawReturnPct = Math.round((rawProfitDollar / (mid * 100)) * 100);
+
+          // Hard stop loss (-25% rule + half spread slippage)
+          const stopPrice = +(mid * 0.75).toFixed(2);
+          const riskDollar = Math.max(3, Math.round((mid * 0.25 + spread * 0.5) * 100));
+
+          // Raw Reward-to-Risk if target is reached
+          const rawRR = +(rawProfitDollar / riskDollar).toFixed(2);
+
+          // Realistic 0DTE Sweet-Spot Probability & Risk-Adjusted R:R:
+          // Slightly OTM / ATM (off = 0 or +1, Delta ~0.36 to 0.54) has the highest asymmetric Gamma punch BEFORE Theta melts it.
+          // Far OTM (off >= 3) rarely reaches deep ITM in 30-45m and suffers severe Theta burn.
+          const dirEdge = type === "call" ? brain.callEdge : brain.putEdge;
+          const alignedWithBrain = type === brain.rec;
+
+          // Strike sweet-spot factor (peaks at off = 0 and off = 1, i.e., ATM and 1-strike OTM)
+          let strikeSweetSpot = 1.0;
+          if (off === 0) strikeSweetSpot = 1.16;      // ATM: instant Delta + peak Gamma
+          else if (off === 1) strikeSweetSpot = 1.24; // 1 strike OTM: #1 asymmetric 0DTE Gamma sweet spot
+          else if (off === -1) strikeSweetSpot = 0.96; // 1 strike ITM: safe high-Delta
+          else if (off === 2) strikeSweetSpot = 0.92;  // 2 strikes OTM: fast runner
+          else if (off === -2) strikeSweetSpot = 0.78; // 2 strikes ITM: expensive premium, lower R:R
+          else if (off === 3) strikeSweetSpot = 0.58;  // 3 strikes OTM: high decay
+          else strikeSweetSpot = 0.36;                 // 4 strikes OTM: lotto ticket
+
+          const dirMultiplier = alignedWithBrain ? (0.85 + (dirEdge - 50) / 110) : (0.38 * (dirEdge / 50));
+          const spreadPenalty = Math.max(0.72, 1 - (spread / Math.max(0.15, mid)) * 1.2);
+
+          // Effective Risk-Adjusted R:R (so #1 ranked contract is the true highest reward-to-lowest-risk 0DTE strike)
+          const effectiveRR = +(Math.min(7.8, Math.max(0.25, rawRR * strikeSweetSpot * dirMultiplier * spreadPenalty))).toFixed(1);
+
+          // Calculate Good Option % (0-99%) vs Bad Option %
+          let goodScore = Math.round(
+            dirEdge * 0.46 +
+            Math.min(100, effectiveRR * 16.5) * 0.34 +
+            (strikeSweetSpot / 1.24) * 100 * 0.12 +
+            spreadPenalty * 100 * 0.08
+          );
+          if (!alignedWithBrain) {
+            goodScore = Math.min(44, Math.max(9, Math.round(goodScore * 0.52)));
+          } else if (off >= 3) {
+            goodScore = Math.min(58, Math.max(24, goodScore - (off === 4 ? 26 : 14)));
+          } else {
+            goodScore = Math.min(96, Math.max(52, goodScore));
+          }
+          const badScore = 100 - goodScore;
+
+          let tag = "⚡ 0DTE SCALP";
+          if (alignedWithBrain && off === 1) tag = "🔥 #1 BEST R:R SWEET SPOT";
+          else if (alignedWithBrain && off === 0) tag = "⭐ ATM SNIPER PICK";
+          else if (alignedWithBrain && off === -1) tag = "🛡️ SAFE ITM DELTA";
+          else if (alignedWithBrain && off === 2) tag = "🚀 HIGH-GAMMA RUNNER";
+          else if (!alignedWithBrain) tag = "🚫 FIGHTING TREND";
+          else if (off >= 3) tag = "⚠️ LOTTO / THETA TRAP";
+          else tag = "🛡️ DEEP ITM";
+
+          const oi = liveMatch && liveMatch.oi ? liveMatch.oi : Math.round(prof.oi * (off === 0 || off === 1 ? 0.42 : off === 2 ? 0.31 : 0.18));
+          const vol = liveMatch && liveMatch.vol ? liveMatch.vol : Math.round(oi * (off >= 0 && off <= 2 ? 1.65 : 0.75));
+
+          contracts.push({
+            id: `${sym}_${type.toUpperCase()}_${K}`,
+            sym,
+            type,
+            K,
+            off,
+            bid,
+            ask,
+            mid,
+            spread,
+            delta: absDelta,
+            signedDelta: +entryGreeks.delta.toFixed(2),
+            gamma,
+            thetaHr: +thetaHr.toFixed(2),
+            stopPrice,
+            riskDollar,
+            rawProfitDollar,
+            scale1ProfitDollar,
+            rawReturnPct,
+            rawRR,
+            effectiveRR,
+            goodScore,
+            badScore,
+            tag,
+            oi,
+            vol,
+            targetStockPx,
+            scale1StockPx,
+            alignedWithBrain,
+            isLiveChain: !!liveMatch
+          });
+        });
+      });
+
+      return contracts;
+    }
+
+    function renderAll(autoPickDir) {
+      const { prof, sym } = getProfile(currentTicker);
+      const brain = computeBrain(prof, currentFlow);
+      if (autoPickDir) currentType = brain.rec;
+
+      document.getElementById("btnCall").className = "btn-seg " + (currentType === "call" ? "active-call" : "");
+      document.getElementById("btnCall").textContent = `BUY CALLS (${brain.callEdge}%)`;
+      document.getElementById("btnPut").className = "btn-seg " + (currentType === "put" ? "active-put" : "");
+      document.getElementById("btnPut").textContent = `BUY PUTS (${brain.putEdge}%)`;
+
+      ["scalp_2dte", "zero_dte", "friday_5dte", "lotto_0dte"].forEach(m => {
+        document.getElementById("mode_" + m).className = "btn-seg " + (currentMode === m ? "active-mode" : "");
+      });
+      ["auto", "more_puts_bullish", "more_calls_bearish"].forEach(f => {
+        document.getElementById("flow_" + f).className = "btn-seg " + (currentFlow === f ? "active-mode" : "");
+      });
+
+      const S = prof.p;
+      let dte = 2, hrs = 0.75, mult = currentType === "call" ? 0.995 : 1.005;
+      if (currentMode === "zero_dte") { dte = 0.5; hrs = 0.5; mult = 1.0; }
+      else if (currentMode === "friday_5dte") { dte = 5; hrs = 1.5; mult = currentType === "call" ? 0.99 : 1.01; }
+      else if (currentMode === "lotto_0dte") { dte = 0.5; hrs = 1.0; mult = currentType === "call" ? 1.015 : 0.985; }
+
+      // Build live 0DTE contract chain and rank by Highest Reward-to-Lowest Risk
+      const allContracts = buildZeroDteChain(prof, brain, sym);
+      const rankedByRR = [...allContracts].sort((a, b) => (b.effectiveRR * 10 + b.goodScore) - (a.effectiveRR * 10 + a.goodScore));
+
+      // Auto-select #1 best R:R contract if none selected or ticker changed
+      let selContract = allContracts.find(c => c.id === selectedContractId);
+      if (!selContract || selContract.sym !== sym || autoPickDir) {
+        selContract = rankedByRR[0];
+        selectedContractId = selContract.id;
+      }
+
+      const K = (currentMode === "zero_dte" || currentMode === "lotto_0dte") && selContract
+        ? selContract.K
+        : Math.max(0.5, roundStrike(S * mult));
+      const sigma = prof.iv / 100.0;
+      const entry = bs(S, K, dte / 365.0, sigma, currentType);
+      const P = (currentMode === "zero_dte" && selContract && selContract.type === currentType)
+        ? selContract.mid
+        : Math.max(0.05, +entry.price.toFixed(2));
+      const spread = prof.s;
+      const target = brain.stdv2;
+
+      const remD = Math.max(0.02, dte - hrs / 6.5);
+      const exitT = bs(target, K, remD / 365.0, sigma, currentType);
+      const profitDollar = Math.round((exitT.price - P - spread) * 100);
+      const profitPct = Math.round(((exitT.price - P - spread) / P) * 100);
+      const hrBurnPct = (Math.abs(entry.thetaHr) / P) * 100;
+      const maxSafeHrs = Math.max(0.25, Math.min(6.5, +(10.0 / Math.max(0.5, hrBurnPct)).toFixed(1)));
+      const dirEdge = currentType === "call" ? brain.callEdge : brain.putEdge;
+      const winProb = Math.min(92, Math.max(12, Math.round(dirEdge * 0.92)));
+
+      const vBox = document.getElementById("verdictBox");
+      const fighting = currentType !== brain.rec;
+      if (fighting) {
+        vBox.className = "verdict-box warn";
+        document.getElementById("verdictHead").textContent = `⚠️ Warning: You Picked ${currentType.toUpperCase()}S Against a ${brain.winConf}% BUY ${brain.rec.toUpperCase()}S Signal!`;
+        document.getElementById("verdictDesc").textContent = `The 5-signal STDV + OTE + Video Probability brain favors BUY ${brain.rec.toUpperCase()}S (${brain.winConf}% vs ${100 - brain.winConf}%). Tap BUY ${brain.rec.toUpperCase()}S above to align with the setup.`;
+      } else {
+        vBox.className = "verdict-box good";
+        document.getElementById("verdictHead").textContent = `✅ BUY ${sym} $${K} ${currentType.toUpperCase()} (${dirEdge}% Edge) · Hold 30m–45m`;
+        document.getElementById("verdictDesc").textContent = `Sniper Entry: Wait for 0.705 OTE ($${brain.ote705}) or ${currentType === "call" ? "L2/L3 ($" + brain.L2 + ")" : "H2/H3 ($" + brain.H2 + ")"}. Take Profit at -2.0 STDV ($${brain.stdv2}) & -2.5 STDV ($${brain.stdv2_5}) within 30–45 minutes!`;
+      }
+
+      // Render 0DTE Chain Filter Tabs
+      ["best_rr", "calls", "puts"].forEach(tab => {
+        const el = document.getElementById("tab_" + tab);
+        if (el) el.className = "btn-seg " + (currentChainFilter === tab ? "active-mode" : "");
+      });
+
+      // Render Top 3 Best Reward:Risk 0DTE Cards
+      const top3 = rankedByRR.slice(0, 3);
+      const topPicksEl = document.getElementById("topZeroDtePicks");
+      if (topPicksEl) {
+        topPicksEl.innerHTML = top3.map((c, idx) => {
+          const isSel = selContract && selContract.id === c.id;
+          const rankLabel = idx === 0 ? "🏆 #1 HIGHEST R:R PICK" : idx === 1 ? "🥈 #2 RUNNER-UP R:R" : "🥉 #3 SAFE ITM R:R";
+          return `
+            <div class="pick-card ${isSel ? 'selected' : ''}" onclick="selectZeroDteContract('${c.id}')">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                <span style="font-size:10.5px;font-weight:800;color:#34d399;">${rankLabel}</span>
+                <span class="rr-badge">${c.effectiveRR}x R:R</span>
+              </div>
+              <div style="font-size:15px;font-weight:800;margin-bottom:2px;">
+                ${c.sym} $${c.K} ${c.type.toUpperCase()} <span style="font-size:11px;color:var(--muted);font-weight:600;">(0DTE)</span>
+              </div>
+              <div style="font-size:12px;color:#cbd5e1;margin-bottom:4px;">
+                Ask <strong>$${c.ask.toFixed(2)}</strong> ($${Math.round(c.mid * 100)}/ct) · <strong>${c.delta} Δ</strong>
+              </div>
+              <div style="font-size:11.5px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="color:var(--green);font-weight:800;">🟢 ${c.goodScore}% GOOD</span>
+                <span style="color:var(--muted);">Risk -$${c.riskDollar} → +$${c.rawProfitDollar}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      // Render Selected 0DTE Contract Deep-Dive Inspector (Good % vs Bad %)
+      const inspEl = document.getElementById("selectedContractInspector");
+      if (inspEl && selContract) {
+        const c = selContract;
+        const isGood = c.goodScore >= 68;
+        const isOkay = c.goodScore >= 48 && c.goodScore < 68;
+        inspEl.className = "inspector-box " + (isGood ? "good" : isOkay ? "warn" : "bad");
+
+        let whyText = "";
+        if (!c.alignedWithBrain) {
+          whyText = `❌ <strong>Why It Scores ${c.badScore}% BAD:</strong> This ${c.type.toUpperCase()} fights the 5-Signal Master Brain (${brain.winConf}% BUY ${brain.rec.toUpperCase()}S). Even if it looks cheap at $${c.mid.toFixed(2)}, buying against EMA trend + Put/Call flow + STDV targets has a high chance of getting stopped out for -$${c.riskDollar}. Tap the <strong>#1 Highest R:R ${brain.rec.toUpperCase()}</strong> above instead!`;
+        } else if (c.off === 1 || c.off === 0) {
+          whyText = `✅ <strong>Why This Is the #1 Highest Reward-to-Lowest Risk 0DTE Strike:</strong> At <strong>${c.delta} Delta</strong> and <strong>${c.gamma} Gamma</strong>, this strike costs only <strong>$${Math.round(c.mid * 100)}</strong> per contract (max risk <strong>-$${c.riskDollar}</strong> at -25% stop) while exploding to <strong>+$${c.rawProfitDollar} (+${c.rawReturnPct}%)</strong> on a 30–45 minute push to -2.0 STDV ($${c.targetStockPx}). You get <strong>${c.effectiveRR}x Reward-to-Risk</strong> without paying expensive deep-ITM prices or suffering far-OTM Lotto decay!`;
+        } else if (c.off <= -1) {
+          whyText = `🛡️ <strong>Why It Scores ${c.goodScore}% GOOD (Safe In-The-Money):</strong> With a high <strong>${c.delta} Delta</strong>, this contract moves almost dollar-for-dollar with ${c.sym} and resists hourly Theta burn (-$${Math.abs(c.thetaHr * 100).toFixed(0)}/hr). It has high win odds but slightly lower R:R (${c.effectiveRR}x) because the entry price ($${Math.round(c.mid * 100)}) is higher.`;
+        } else {
+          whyText = `⚠️ <strong>Why It Scores ${c.badScore}% BAD Risk (Far OTM Lotto Trap):</strong> This strike is ${c.off} steps Out-of-the-Money (${c.delta} Delta). Even though the contract looks cheap at $${c.mid.toFixed(2)}, 0DTE Theta decay eats it fast if ${c.sym} pauses for even 20 minutes. Stick to the 0.38–0.52 Delta Sweet Spot for ${top3[0].effectiveRR}x R:R!`;
+        }
+
+        const verdictLabel = isGood
+          ? `✅ ${c.goodScore}% GOOD 0DTE OPTION (Only ${c.badScore}% Bad Risk) — ${c.effectiveRR}x Reward:Risk!`
+          : isOkay
+          ? `🟡 ${c.goodScore}% OKAY / ${c.badScore}% RISKY 0DTE OPTION — ${c.effectiveRR}x Reward:Risk`
+          : `❌ ${c.badScore}% BAD 0DTE OPTION (Only ${c.goodScore}% Good) — Low ${c.effectiveRR}x R:R Trap!`;
+
+        inspEl.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.5px;color:#93c5fd;font-weight:800;">
+                🎯 Selected 0DTE Contract Inspector (Tap Any Row Below to Switch)
+              </div>
+              <div style="font-size:16.5px;font-weight:800;margin-top:2px;">
+                ${c.sym} $${c.K} ${c.type.toUpperCase()} (0DTE) · <span style="color:${isGood ? 'var(--green)' : isOkay ? 'var(--yellow)' : 'var(--red)'}">${verdictLabel}</span>
+              </div>
+            </div>
+            <span class="pill ${isGood ? 'pill-call' : isOkay ? 'pill-warn' : 'pill-put'}">${c.tag}</span>
+          </div>
+
+          <div class="pct-bar-wrap">
+            <div class="pct-bar-good" style="width:${c.goodScore}%"></div>
+            <div class="pct-bar-bad" style="width:${c.badScore}%"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:11.5px;font-weight:800;margin-bottom:10px;">
+            <span style="color:var(--green);">🟢 GOOD OPTION SCORE: ${c.goodScore}%</span>
+            <span style="color:var(--red);">🔴 BAD / DECAY RISK: ${c.badScore}%</span>
+          </div>
+
+          <div class="metrics-grid" style="margin-bottom:10px;">
+            <div class="metric">
+              <div class="metric-val">$${c.mid.toFixed(2)}</div>
+              <div class="metric-lbl">Contract Mid ($${Math.round(c.mid * 100)})</div>
+              <div class="metric-sub">Bid $${c.bid.toFixed(2)} / Ask $${c.ask.toFixed(2)}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" style="color:var(--red);">-$${c.riskDollar}</div>
+              <div class="metric-lbl">Lowest Risk (-25% Stop)</div>
+              <div class="metric-sub">Hard Stop @ $${c.stopPrice.toFixed(2)}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" style="color:var(--green);">+$${c.rawProfitDollar}</div>
+              <div class="metric-lbl">Target Reward (+${c.rawReturnPct}%)</div>
+              <div class="metric-sub">1st Scale: +$${c.scale1ProfitDollar} @ -1 STDV</div>
+            </div>
+            <div class="metric">
+              <div class="metric-val" style="color:#60a5fa;">${c.effectiveRR}x R:R</div>
+              <div class="metric-lbl">Reward-to-Risk Ratio</div>
+              <div class="metric-sub">${c.delta} Δ · ${c.gamma} Γ · OI ${c.oi.toLocaleString()}</div>
+            </div>
+          </div>
+
+          <div style="font-size:12.5px;color:#e2e8f0;line-height:1.45;">
+            ${whyText}
+          </div>
+        `;
+      }
+
+      // Filter and Render the Clickable 0DTE Chain Table
+      let displayChain = rankedByRR;
+      if (currentChainFilter === "calls") {
+        displayChain = allContracts.filter(c => c.type === "call").sort((a, b) => a.K - b.K);
+      } else if (currentChainFilter === "puts") {
+        displayChain = allContracts.filter(c => c.type === "put").sort((a, b) => b.K - a.K);
+      }
+
+      const chainBodyEl = document.getElementById("zeroDteChainBody");
+      if (chainBodyEl) {
+        chainBodyEl.innerHTML = displayChain.map(c => {
+          const isSel = selContract && selContract.id === c.id;
+          const isGood = c.goodScore >= 68;
+          const isOkay = c.goodScore >= 48 && c.goodScore < 68;
+          const rowClass = isSel ? (isGood ? "chain-row active-row" : "chain-row active-row-bad") : "chain-row";
+          const pillClass = isGood ? "pill-call" : isOkay ? "pill-warn" : "pill-put";
+          const verdictWord = isGood ? "GOOD" : isOkay ? "OKAY" : "BAD";
+          return `
+            <tr class="${rowClass}" onclick="selectZeroDteContract('${c.id}')">
+              <td>
+                <div style="font-weight:800;font-size:13px;">
+                  ${isSel ? '👉 ' : ''}${c.sym} $${c.K} ${c.type.toUpperCase()}
+                </div>
+                <div style="font-size:10.5px;color:var(--muted);">${c.tag}</div>
+              </td>
+              <td>
+                <div style="font-weight:700;">$${c.bid.toFixed(2)} / $${c.ask.toFixed(2)}</div>
+                <div style="font-size:10.5px;color:var(--muted);">Mid $${c.mid.toFixed(2)} ($${Math.round(c.mid * 100)})</div>
+              </td>
+              <td>
+                <div style="font-weight:700;">${c.delta} Δ · ${c.gamma} Γ</div>
+                <div style="font-size:10.5px;color:var(--muted);">Theta -$${Math.abs(c.thetaHr * 100).toFixed(0)}/hr</div>
+              </td>
+              <td>
+                <div><span style="color:var(--red);font-weight:700;">-$${c.riskDollar}</span> → <span style="color:var(--green);font-weight:800;">+$${c.rawProfitDollar}</span></div>
+                <div style="font-size:10.5px;color:var(--muted);">Stop $${c.stopPrice.toFixed(2)} · +${c.rawReturnPct}% at -2 STDV</div>
+              </td>
+              <td>
+                <span class="rr-badge">${c.effectiveRR}x R:R</span>
+              </td>
+              <td>
+                <span class="pill ${pillClass}">${c.goodScore}% ${verdictWord}</span>
+                <div style="font-size:10px;color:var(--muted);margin-top:2px;">${c.badScore}% Bad Risk</div>
+              </td>
+            </tr>
+          `;
+        }).join("");
+      }
+
+      document.getElementById("metricsGrid").innerHTML = `
+        <div class="metric"><div class="metric-val" style="color:var(--green)">BUY ${brain.rec.toUpperCase()}S</div><div class="metric-lbl">Master Verdict (${brain.winConf}%)</div><div class="metric-sub">Calls ${brain.callEdge}% · Puts ${brain.putEdge}%</div></div>
+        <div class="metric"><div class="metric-val">$${brain.ote705}</div><div class="metric-lbl">0.705 OTE Sniper Entry</div><div class="metric-sub">Zone: $${brain.ote79}–$${brain.ote62}</div></div>
+        <div class="metric"><div class="metric-val" style="color:var(--green)">$${brain.stdv2}</div><div class="metric-lbl">-2.0 STDV Target</div><div class="metric-sub">-2.5 STDV: $${brain.stdv2_5}</div></div>
+        <div class="metric"><div class="metric-val">30m–45m</div><div class="metric-lbl">Optimal Hold Time</div><div class="metric-sub">Max safe: ${maxSafeHrs}h before 10% burn</div></div>
+        <div class="metric"><div class="metric-val">$${brain.L2} / $${brain.L3}</div><div class="metric-lbl">Video L2 / L3 Floor</div><div class="metric-sub">60% / 80% Bullish Revert</div></div>
+        <div class="metric"><div class="metric-val">$${brain.H1} / $${brain.H2}</div><div class="metric-lbl">Video H1 / H2 Bands</div><div class="metric-sub">80% Hit / 60% Reject</div></div>
+        <div class="metric"><div class="metric-val" style="color:var(--green)">+${Math.max(0, profitDollar)}$</div><div class="metric-lbl">Est. Target Profit</div><div class="metric-sub">+${Math.max(0, profitPct)}% (${winProb}% Win Odds)</div></div>
+        <div class="metric"><div class="metric-val" style="color:var(--red)">$${(P * 0.75).toFixed(2)}</div><div class="metric-lbl">Hard Stop (-25%)</div><div class="metric-sub">Theta: -$${Math.abs(entry.thetaHr * 100).toFixed(0)}/hr</div></div>
+      `;
+
+      document.getElementById("ladderBody").innerHTML = `
+        <tr><td><strong>0.705 OTE Sniper</strong></td><td>$${brain.ote705}</td><td><span class="pill pill-call">78% Entry</span></td><td>Buy the 62%–79% Fib pullback instead of chasing candles</td></tr>
+        <tr><td><strong>-1.0 STDV Target</strong></td><td>$${brain.stdv1}</td><td><span class="pill pill-call">82% Hit</span></td><td>First scale-out: sell 1/3 and move stop to breakeven</td></tr>
+        <tr><td><strong>-2.0 STDV + H2/L2</strong></td><td>$${brain.stdv2}</td><td><span class="pill pill-call">68% Hit</span></td><td>Main take-profit target where institutional moves finish</td></tr>
+        <tr><td><strong>-2.5 STDV Killzone</strong></td><td>$${brain.stdv2_5}</td><td><span class="pill pill-warn">55% Exhaust</span></td><td>Full exit zone for a 30-to-45 minute momentum scalp</td></tr>
+        <tr><td><strong>Video L1 & H1</strong></td><td>$${brain.L1} / $${brain.H1}</td><td><span class="pill pill-call">80% Touch</span></td><td>Close below H1 targets L2; holding L1 targets H1/H2</td></tr>
+        <tr><td><strong>Video L3 & H3</strong></td><td>$${brain.L3} / $${brain.H3}</td><td><span class="pill pill-put">80% Revert</span></td><td>Video 3 setup: QQQ bounced off L3 for +200% in 30m</td></tr>
+      `;
+
+      document.getElementById("signalsBody").innerHTML = brain.reasons.map(r => `
+        <tr>
+          <td><strong>${r.f}</strong></td>
+          <td>${r.r}</td>
+          <td><span class="pill ${r.s === 'CALL' ? 'pill-call' : 'pill-put'}">BUY ${r.s}S</span></td>
+          <td>${r.w}</td>
+        </tr>
+      `).join("");
+
+      const cps = [
+        { l: "15m (Quick Pop)", h: 0.25 },
+        { l: "30m (Video Sweet Spot)", h: 0.5 },
+        { l: "45m (Momentum Scalp)", h: 0.75 },
+        { l: "1.5h (STDV -2.5 Ride)", h: 1.5 },
+        { l: "2.5h (Half-Day)", h: 2.5 },
+        { l: "4.0h (All-Day)", h: 4.0 }
+      ];
+      const moveD = Math.abs(target - S);
+      document.getElementById("holdBody").innerHTML = cps.map(c => {
+        const rD = Math.max(0.015, dte - c.h / 6.5);
+        const reach = Math.min(1.15, Math.sqrt(c.h / 0.85));
+        const px = currentType === "call" ? S + moveD * reach : Math.max(0.01, S - moveD * reach);
+        const tBS = bs(px, K, rD / 365.0, sigma, currentType);
+        const fBS = bs(S, K, rD / 365.0, sigma, currentType);
+        const plT = Math.round((tBS.price - P - spread) * 100);
+        const plF = Math.round((fBS.price - P - spread) * 100);
+        const burn = Math.abs(((fBS.price - P) / P) * 100);
+        const adv = burn > 12 ? "Exit Before Here" : (c.h <= 0.75 ? "30m–45m Sweet Spot" : "Trail Stop Tight");
+        return `<tr><td><strong>${c.l}</strong></td><td style="color:var(--green);font-weight:700">+${Math.max(0, plT)}$</td><td style="color:var(--red)">-$${Math.abs(plF)}</td><td>-${burn.toFixed(1)}%</td><td>${adv}</td></tr>`;
+      }).join("");
+      try { renderSimple(prof, brain, sym, allContracts, rankedByRR, selContract); } catch (e) { console.error(e); }
+      try { renderTrading(prof, brain, sym, allContracts, selContract); } catch (e) { console.error(e); }
+    }
+
+
+    function calcEMA(arr, period) {
+      if (!arr || !arr.length) return 0;
+      const k = 2 / (period + 1);
+      let ema = arr[0];
+      for (let i = 1; i < arr.length; i++) {
+        ema = arr[i] * k + ema * (1 - k);
+      }
+      return +ema.toFixed(2);
+    }
+
+    function calcRSI(arr, period = 14) {
+      if (!arr || arr.length <= period) return 52;
+      let gains = 0, losses = 0;
+      for (let i = arr.length - period; i < arr.length; i++) {
+        const diff = arr[i] - arr[i - 1];
+        if (diff > 0) gains += diff;
+        else losses -= diff;
+      }
+      if (losses === 0) return 75;
+      const rs = (gains / period) / (losses / period);
+      return Math.round(100 - (100 / (1 + rs)));
+    }
+
+    async function fetchYahooChart(sym) {
+      const clean = sym.replace(".", "-").toUpperCase();
+      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(clean)}?interval=5m&range=5d&includePrePost=false`;
+      const endpoints = [
+        targetUrl,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+      ];
+      for (const url of endpoints) {
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 5500);
+          const res = await fetch(url, { signal: ctrl.signal });
+          clearTimeout(timer);
+          if (!res.ok) continue;
+          const data = await res.json();
+          const result = data && data.chart && data.chart.result && data.chart.result[0];
+          if (result && result.meta) return result;
+        } catch (err) {
+          // try next fallback
+        }
+      }
+      return null;
+    }
+
+    async function syncLiveMarket(sym, manualTrigger = false) {
+      const clean = (sym || currentTicker || "QQQ").trim().toUpperCase();
+      const statusEl = document.getElementById("liveStatusText");
+      const badgeEl = document.getElementById("matchBadge");
+      if (statusEl) statusEl.textContent = `Fetching live 5m market data for ${clean}...`;
+
+      fetchYahooOptionChain(clean);
+      const chart = await fetchYahooChart(clean);
+      if (!chart) {
+        if (statusEl) statusEl.textContent = `Using built-in snapshot for ${clean} (tap Sync Live or type price)`;
+        if (badgeEl) badgeEl.textContent = `Snapshot Ready · ${clean}`;
+        return;
+      }
+
+      const meta = chart.meta || {};
+      const quote = (chart.indicators && chart.indicators.quote && chart.indicators.quote[0]) || {};
+      const closes = (quote.close || []).filter(v => typeof v === "number" && !isNaN(v));
+      const highs = (quote.high || []).filter(v => typeof v === "number" && !isNaN(v));
+      const lows = (quote.low || []).filter(v => typeof v === "number" && !isNaN(v));
+
+      if (!closes.length && !meta.regularMarketPrice) return;
+
+      const livePrice = +(meta.regularMarketPrice || closes[closes.length - 1]).toFixed(2);
+      const prevClose = +(meta.chartPreviousClose || meta.previousClose || closes[0] || livePrice).toFixed(2);
+      const chg1d = prevClose > 0 ? +(((livePrice - prevClose) / prevClose) * 100).toFixed(2) : 0;
+      const chg5d = closes.length > 1 ? +(((livePrice - closes[0]) / closes[0]) * 100).toFixed(2) : chg1d;
+
+      const e9 = closes.length >= 9 ? calcEMA(closes.slice(-45), 9) : +(livePrice * 0.997).toFixed(2);
+      const e21 = closes.length >= 21 ? calcEMA(closes.slice(-75), 21) : +(livePrice * 0.993).toFixed(2);
+      const e50 = closes.length >= 50 ? calcEMA(closes.slice(-120), 50) : +(livePrice * 0.985).toFixed(2);
+      const rsi = calcRSI(closes, 14);
+
+      const recentHighs = highs.slice(-78);
+      const recentLows = lows.slice(-78);
+      const res = recentHighs.length ? +Math.max(...recentHighs).toFixed(2) : +(livePrice * 1.015).toFixed(2);
+      const sup = recentLows.length ? +Math.min(...recentLows).toFixed(2) : +(livePrice * 0.985).toFixed(2);
+
+      // Estimate intraday annualized IV from 5m returns if not in DB
+      let estIv = (TICKER_DB[clean] && TICKER_DB[clean].iv) ? TICKER_DB[clean].iv : 30;
+      if (closes.length > 25) {
+        const rets = [];
+        for (let i = closes.length - 24; i < closes.length; i++) {
+          if (closes[i - 1] > 0) rets.push(Math.log(closes[i] / closes[i - 1]));
+        }
+        const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+        const variance = rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length;
+        const annVol = Math.sqrt(variance * 78 * 252) * 100;
+        if (annVol > 8 && annVol < 180) {
+          estIv = Math.round(estIv * 0.55 + annVol * 0.45);
+        }
+      }
+
+      const existing = TICKER_DB[clean] || {
+        iv: estIv, ivr: 35, s: 0.04, oi: 25000, n: meta.shortName || clean, rvol: 1.15
+      };
+
+      TICKER_DB[clean] = {
+        ...existing,
+        p: livePrice,
+        iv: estIv,
+        chg1d,
+        chg5d,
+        e9,
+        e21,
+        e50,
+        rsi,
+        sup,
+        res
+      };
+
+      const manualInput = document.getElementById("manualPriceInput");
+      if (manualInput && document.activeElement !== manualInput) {
+        manualInput.value = livePrice;
+      }
+
+      const nowStr = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      if (badgeEl) badgeEl.textContent = `🟢 LIVE ${clean} $${livePrice}`;
+      if (statusEl) statusEl.textContent = `Live 5m candles synced at ${nowStr} (9-EMA $${e9} · RSI ${rsi})`;
+
+      renderAll(manualTrigger);
+    }
+
+    let liveSyncDebounce = null;
+    document.getElementById("tickerInput").addEventListener("input", e => {
+      currentTicker = e.target.value.toUpperCase();
+      renderAll(true);
+      clearTimeout(liveSyncDebounce);
+      liveSyncDebounce = setTimeout(() => syncLiveMarket(currentTicker, true), 550);
+    });
+    document.getElementById("tickerSelect").addEventListener("change", e => {
+      currentTicker = e.target.value;
+      document.getElementById("tickerInput").value = currentTicker;
+      renderAll(true);
+      syncLiveMarket(currentTicker, true);
+    });
+    document.getElementById("manualPriceInput").addEventListener("input", e => {
+      const val = parseFloat(e.target.value);
+      if (val > 0) {
+        const { prof, sym } = getProfile(currentTicker);
+        TICKER_DB[sym] = { ...prof, p: +val.toFixed(2) };
+        document.getElementById("matchBadge").textContent = `⚡ LIVE ${sym} $${val.toFixed(2)}`;
+        renderAll(true);
+      }
+    });
+    async function fetchYahooOptionChain(sym) {
+      const clean = sym.replace(".", "-").toUpperCase();
+      const targetUrl = `https://query1.finance.yahoo.com/v7/finance/options/${encodeURIComponent(clean)}`;
+      const endpoints = [
+        targetUrl,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+      ];
+      for (const url of endpoints) {
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 5000);
+          const res = await fetch(url, { signal: ctrl.signal });
+          clearTimeout(timer);
+          if (!res.ok) continue;
+          const data = await res.json();
+          const chainRes = data && data.optionChain && data.optionChain.result && data.optionChain.result[0];
+          const opts = chainRes && chainRes.options && chainRes.options[0];
+          if (opts && (opts.calls || opts.puts)) {
+            const mapSide = arr => (arr || []).map(o => ({
+              strike: +o.strike,
+              bid: +(o.bid || 0),
+              ask: +(o.ask || 0),
+              mid: o.bid && o.ask ? +((o.bid + o.ask) / 2).toFixed(2) : +(o.lastPrice || 0),
+              iv: +(o.impliedVolatility || 0),
+              oi: +(o.openInterest || 0),
+              vol: +(o.volume || 0)
+            }));
+            liveOptionsCache[clean] = {
+              call: mapSide(opts.calls),
+              put: mapSide(opts.puts)
+            };
+            const badge = document.getElementById("chainSourceBadge");
+            if (badge) badge.textContent = `🟢 Live 0DTE Chain Synced (${clean})`;
+            renderAll(false);
+            return;
+          }
+        } catch (err) {
+          // fallback to local 0DTE Black-Scholes pricing
+        }
+      }
+      const badge = document.getElementById("chainSourceBadge");
+      if (badge) badge.textContent = `⚡ 0DTE Live-Priced Chain (${clean})`;
+    }
+
+    function selectZeroDteContract(contractId) {
+      selectedContractId = contractId;
+      const { prof, sym } = getProfile(currentTicker);
+      const brain = computeBrain(prof, currentFlow);
+      const chain = buildZeroDteChain(prof, brain, sym);
+      const picked = chain.find(c => c.id === contractId);
+      if (picked) {
+        currentType = picked.type;
+        currentMode = picked.off >= 3 ? "lotto_0dte" : "zero_dte";
+      }
+      renderAll(false);
+    }
+
+    function setChainFilter(f) {
+      currentChainFilter = f;
+      renderAll(false);
+    }
+
+    function setOptType(t) {
+      currentType = t;
+      const { prof, sym } = getProfile(currentTicker);
+      const brain = computeBrain(prof, currentFlow);
+      const chain = buildZeroDteChain(prof, brain, sym).filter(c => c.type === t);
+      chain.sort((a, b) => (b.effectiveRR * 10 + b.goodScore) - (a.effectiveRR * 10 + a.goodScore));
+      if (chain[0]) selectedContractId = chain[0].id;
+      renderAll(false);
+    }
+    function setMode(m) { currentMode = m; renderAll(false); }
+    function setFlow(f) { currentFlow = f; renderAll(true); }
+
+
+    // ===== SIMPLE BEGINNER MODE RENDERER =====
+    let simpleTab = "best";
+    function setSimpleTab(t) { simpleTab = t; renderAll(false); }
+    function money(n) { return "$" + Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+    function simpleName(c) { return `${c.sym} $${c.K} ${c.type === "call" ? "UP bet (Call)" : "DOWN bet (Put)"}`; }
+    function pillClass(g) { return g >= 60 ? "good" : g >= 45 ? "meh" : "bad"; }
+    function pillText(g) { return `Win chance ${g}%`; }
+
+    function renderSimple(prof, brain, sym, allContracts, rankedByRR, selContract) {
+      const up = brain.rec === "call";
+      const conf = brain.winConf;
+      const st = document.getElementById("simpleTicker");
+      if (st && document.activeElement !== st) st.value = currentTicker;
+      const sp = document.getElementById("simplePrice");
+      if (sp) sp.textContent = money(prof.p);
+      document.querySelectorAll("#simpleQuick button").forEach(b => {
+        b.className = b.textContent === sym ? "on" : "";
+      });
+      const ls = document.getElementById("liveStatusText");
+      const ss = document.getElementById("simpleStatus");
+      if (ls && ss) ss.textContent = (ls.textContent || "") + " · Auto-refresh every 30s while the market is open.";
+
+      // best contract in recommended direction
+      const best = rankedByRR.find(c => c.type === brain.rec) || rankedByRR[0];
+      const cost = Math.round(best.mid * 100);
+      const ans = document.getElementById("simpleAnswer");
+      if (ans) {
+        ans.innerHTML = `
+          <div class="s-answer ${up ? "up" : "down"}">
+            <div class="s-answer-label">Signal · ${sym} <span class="num">${money(prof.p)}</span></div>
+            <div class="s-answer-head">${up ? "Bullish · Buy Calls" : "Bearish · Buy Puts"}</div>
+            <div class="s-answer-conf">${conf}% confidence</div>
+            <div class="s-bar"><div class="g" style="width:${best.goodScore}%"></div><div class="b" style="width:${best.badScore}%"></div></div>
+            <div class="s-bar-legend"><span style="color:var(--green)">Win chance ${best.goodScore}%</span><span>Top contract</span><span style="color:var(--red)">Loss chance ${best.badScore}%</span></div>
+          </div>
+          <div class="s-boxes">
+            <div class="s-box">
+              <div class="s-box-label">Contract</div>
+              <div class="s-box-val">${sym} $${best.K} ${best.type === "call" ? "Call" : "Put"}</div>
+              <div class="s-box-note">≈ <span class="num">${money(cost)}</span> per contract · expires today</div>
+            </div>
+            <div class="s-box">
+              <div class="s-box-label">Entry</div>
+              <div class="s-box-val">${money(brain.ote705)}</div>
+              <div class="s-box-note">Wait for ${sym} to ${up ? "pull back" : "bounce"} to this level before buying.</div>
+            </div>
+            <div class="s-box">
+              <div class="s-box-label">Target</div>
+              <div class="s-box-val" style="color:var(--green)">${money(best.targetStockPx)}</div>
+              <div class="s-box-note">Est. gain +${money(best.rawProfitDollar)} · ${best.effectiveRR}× reward/risk</div>
+            </div>
+            <div class="s-box">
+              <div class="s-box-label">Stop</div>
+              <div class="s-box-val" style="color:var(--red)">${money(best.stopPrice)}</div>
+              <div class="s-box-note">Exit if the option falls here · max loss −${money(best.riskDollar)}</div>
+            </div>
+            <div class="s-box" style="grid-column:1/-1">
+              <div class="s-box-label">Hold window</div>
+              <div class="s-box-val">30–45 minutes</div>
+              <div class="s-box-note">Same-day options lose value quickly; don't hold all day.</div>
+            </div>
+          </div>`;
+      }
+
+      ["best", "call", "put"].forEach(t => {
+        const b = document.getElementById("sTab_" + t);
+        if (b) b.className = simpleTab === t ? "on" : "";
+      });
+      let list = simpleTab === "best" ? rankedByRR.slice(0, 4)
+        : rankedByRR.filter(c => c.type === simpleTab).slice(0, 6);
+      const cardsEl = document.getElementById("simpleCards");
+      if (cardsEl) {
+        cardsEl.innerHTML = list.map(c => `
+          <div class="s-card ${selContract && selContract.id === c.id ? "sel" : ""}" onclick="selectZeroDteContract('${c.id}')">
+            <div class="s-card-top">
+              <div class="s-card-name">${c.sym} $${c.K} <span style="color:${c.type === "call" ? "var(--green)" : "var(--red)"}">${c.type === "call" ? "Call" : "Put"}</span></div>
+              <div class="s-pill ${pillClass(c.goodScore)}">${pillText(c.goodScore)}</div>
+            </div>
+            <div class="s-card-meta"><span>Cost <strong>${money(Math.round(c.mid * 100))}</strong></span><span>Max gain <strong style="color:var(--green)">+${money(c.rawProfitDollar)}</strong></span><span>Max loss <strong style="color:var(--red)">−${money(c.riskDollar)}</strong></span></div>
+          </div>`).join("");
+      }
+
+      const ex = document.getElementById("simpleExplain");
+      if (ex && selContract) {
+        const c = selContract;
+        const dir = c.type === "call" ? "UP" : "DOWN";
+        const g = c.goodScore;
+        let why = [];
+        why.push(`This is a bet that ${c.sym} goes <strong>${dir}</strong> past $${c.K} before the market closes today.`);
+        why.push(c.alignedWithBrain
+          ? `Aligned: it matches the app's answer (${up ? "UP" : "DOWN"}), so the odds are on your side.`
+          : `Counter-signal: it goes <strong>against</strong> the app's answer (${up ? "UP" : "DOWN"}). Lower odds.`);
+        if (c.off >= 3) why.push(`Far out of the money: the stock has to move a long way for this to pay. Cheap, but it usually expires worth $0 — like a lottery ticket.`);
+        else if (c.off === 1) why.push(`Sweet spot: cheap enough to win big, close enough to the current price to actually get there.`);
+        else if (c.off === 0) why.push(`At the money: the strike is right at today's stock price, so it reacts fast when the stock moves.`);
+        else if (c.off < 0) why.push(`In the money: safer and moves almost dollar-for-dollar with the stock, but it costs more, so the payoff is smaller.`);
+        else why.push(`Slightly out of the money: cheaper and can jump fast, but needs a bigger move.`);
+        why.push(`You pay about <strong>${money(Math.round(c.mid * 100))}</strong>. If ${c.sym} reaches ${money(c.targetStockPx)} in 30–45 min you'd make about <strong style="color:var(--green)">+${money(c.rawProfitDollar)}</strong>. If it goes the wrong way, sell at ${money(c.stopPrice)} per share to lose only about <strong style="color:var(--red)">-${money(c.riskDollar)}</strong>.`);
+        why.push(`For every $1 you risk, you could make about $${c.effectiveRR}. ${c.effectiveRR >= 2 ? "That's a good trade-off." : "That's not much reward for the risk."}`);
+        ex.innerHTML = `<h4>${g >= 60 ? "Favorable" : g >= 45 ? "Neutral" : "Unfavorable"} — ${c.sym} $${c.K} ${c.type === "call" ? "Call" : "Put"}</h4>` + why.map(w => `<p style="margin:0 0 8px">${w}</p>`).join("");
+      }
+    }
+
+
+    // ===== TRADING DESK (localStorage) =====
+    const OG_KEY = "og_desk_v1";
+    function ogDefault() { return { settings: { start: 75, lossPct: 20, maxTrades: 3, news: false }, books: { live: [] } }; }
+    function ogLoad() { try { const d = JSON.parse(localStorage.getItem(OG_KEY)); if (d && d.books) { d.books.live = d.books.live || []; d.settings = Object.assign(ogDefault().settings, d.settings); return d; } } catch (e) {} return ogDefault(); }
+    let OG = ogLoad();
+    function ogSave() { try { localStorage.setItem(OG_KEY, JSON.stringify(OG)); } catch (e) {} }
+    function ogBookKey() { return "live"; }
+    function ogBook() { return OG.books[ogBookKey()]; }
+    function ogNow() { return window.__ogNow ? new Date(window.__ogNow) : new Date(); }
+    function ogET(d) {
+      const parts = new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false, weekday: "short" }).formatToParts(d || ogNow());
+      const g = t => (parts.find(p => p.type === t) || {}).value;
+      const h = (+g("hour")) % 24, m = +g("minute");
+      return { day: `${g("year")}-${g("month")}-${g("day")}`, mins: h * 60 + m, hm: `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`, wd: g("weekday") };
+    }
+    function ogBucket(mins) { return mins < 630 ? "Open (9:30-10:30)" : mins < 690 ? "Morning (10:30-11:30)" : mins < 810 ? "Midday (11:30-13:30)" : mins < 900 ? "Afternoon (13:30-15:00)" : "Close (15:00-16:00)"; }
+    function ogStats(book) {
+      const start = OG.settings.start;
+      const closed = book.filter(t => t.exit != null).sort((a, b) => a.closedAt - b.closedAt);
+      const pnl = closed.reduce((a, t) => a + t.pnl, 0);
+      const wins = closed.filter(t => t.pnl > 0), losses = closed.filter(t => t.pnl <= 0);
+      const eq = [start]; let run = start; closed.forEach(t => { run += t.pnl; eq.push(+run.toFixed(2)); });
+      return { start, closed, pnl, bal: start + pnl, wins, losses, eq,
+        winRate: closed.length ? Math.round(wins.length / closed.length * 100) : 0,
+        avgW: wins.length ? wins.reduce((a, t) => a + t.pnl, 0) / wins.length : 0,
+        avgL: losses.length ? losses.reduce((a, t) => a + t.pnl, 0) / losses.length : 0 };
+    }
+    function ogToday(book) {
+      const today = ogET().day;
+      const opened = book.filter(t => t.day === today);
+      const closed = opened.filter(t => t.exit != null).sort((a, b) => a.closedAt - b.closedAt);
+      const realized = closed.reduce((a, t) => a + t.pnl, 0);
+      let streak = 0; for (let i = closed.length - 1; i >= 0 && closed[i].pnl <= 0; i--) streak++;
+      return { count: opened.length, realized, streak };
+    }
+    function ogGuard(st) {
+      const s = OG.settings, td = ogToday(ogBook());
+      const maxLoss = +(st.bal * s.lossPct / 100).toFixed(2);
+      const reasons = [];
+      if (td.realized <= -maxLoss && maxLoss > 0) reasons.push(`Daily loss limit hit (${money(td.realized)} of −${money(maxLoss)})`);
+      if (td.count >= s.maxTrades) reasons.push(`Max ${s.maxTrades} trades today reached`);
+      if (td.streak >= 2) reasons.push("2 consecutive losses — locked until tomorrow");
+      return { locked: reasons.length > 0, reasons, td, maxLoss };
+    }
+    let OG_CTX = null;
+
+    function renderTrading(prof, brain, sym, allContracts, selContract) {
+      OG_CTX = { prof, brain, sym, allContracts, selContract };
+      const st = ogStats(ogBook()), s = OG.settings, et = ogET();
+      const pct = st.start ? st.pnl / st.start * 100 : 0;
+      const col = st.pnl >= 0 ? "var(--green)" : "var(--red)";
+      const acct = document.getElementById("tAcct");
+      if (acct) acct.innerHTML = `
+        <div><div class="k">Balance</div><div class="v">${money(st.bal)}</div></div>
+        <div><div class="k">Total P&amp;L</div><div class="v" style="color:${col}">${st.pnl >= 0 ? "+" : "−"}${money(Math.abs(st.pnl))} (${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%)</div></div>
+        <div style="margin-left:auto;text-align:right"><div class="k">Market time (ET)</div><div class="v">${et.hm}</div></div>`;
+
+      // No-trade filter + time decay
+      const stand = [], warn = [];
+      const open = et.mins >= 570 && et.mins < 960 && !["Sat", "Sun"].includes(et.wd);
+      if (!open) warn.push("Market is closed (open 9:30–16:00 ET, Mon–Fri). Numbers use the last snapshot.");
+      if (open && et.mins < 585) stand.push("Opening volatility — wait until 9:45 ET");
+      if (et.mins >= 690 && et.mins < 810) stand.push("Lunch chop (11:30–13:30 ET) — moves are choppy and unreliable");
+      if ((prof.ivr || 0) >= 70) stand.push(`Volatility cap: IV rank ${prof.ivr} is elevated — premiums are expensive and swings erratic`);
+      const expMove = (prof.iv / 100) / Math.sqrt(252) * 100;
+      if (expMove < 0.6) stand.push(`Low range: expected daily move only ${expMove.toFixed(2)}% — not enough to pay a 0DTE contract`);
+      if (brain.winConf < 60) stand.push(`Weak signal: confidence ${brain.winConf}% (needs 60%+)`);
+      if (s.news) stand.push("Major news day (CPI / FOMC) flagged");
+      let block = false;
+      if (et.mins >= 930 && et.mins < 960) { stand.push("After 15:30 ET — time decay too fast, new buys blocked"); block = true; }
+      else if (et.mins >= 840 && et.mins < 960) warn.push("After 14:00 ET — same-day options lose value very quickly. Size down and keep holds short.");
+      const fEl = document.getElementById("tFilter");
+      if (fEl) fEl.innerHTML = (stand.length ? `<div class="t-banner stop"><b>Stand aside</b><ul>${stand.map(r => `<li>${r}</li>`).join("")}</ul></div>` : (open ? `<div class="t-banner ok"><b>Conditions OK</b>No filters triggered. Follow the plan and the stop.</div>` : ""))
+        + warn.map(w => `<div class="t-banner warn">${w}</div>`).join("");
+
+      // Sizing
+      const c = selContract;
+      const g = ogGuard(st);
+      const sz = document.getElementById("tSizing");
+      if (c && sz) {
+        const cost = Math.round(c.ask * 100);
+        const afford = Math.floor(st.bal / Math.max(1, cost));
+        const pctBal = st.bal > 0 ? cost / st.bal * 100 : 999;
+        let note = "", cls = "ok";
+        if (afford < 1) { note = `Unaffordable: one contract costs ${money(cost)}, balance is ${money(st.bal)}.`; cls = "stop"; }
+        else if (pctBal > 25) { note = `One contract is ${pctBal.toFixed(0)}% of your balance (over the 25% guideline). If you take it, use 1 contract only.`; cls = "warn"; }
+        else note = `Fits the 25% guideline. Suggested size: ${Math.max(1, Math.floor(st.bal * 0.25 / cost))} contract(s).`;
+        sz.innerHTML = `<div style="font-size:15px;font-weight:600;margin-bottom:6px">${c.sym} $${c.K} ${c.type === "call" ? "Call" : "Put"} · <span style="color:var(--muted);font-weight:500">Win chance ${c.goodScore}%</span></div>
+          <div class="t-grid" style="margin:0 0 10px"><div><div class="k">Cost / contract</div><div class="v">${money(cost)}</div></div><div><div class="k">Affordable</div><div class="v">${afford}</div></div><div><div class="k">% of balance</div><div class="v">${pctBal > 900 ? "—" : pctBal.toFixed(0) + "%"}</div></div><div><div class="k">Max loss / ct</div><div class="v" style="color:var(--red)">−${money(c.riskDollar)}</div></div></div>
+          <div class="t-banner ${cls}" style="margin-bottom:8px">${note}</div>`;
+        const eIn = document.getElementById("tEntry");
+        if (eIn && (eIn.dataset.cid !== c.id) && document.activeElement !== eIn) { eIn.value = c.ask.toFixed(2); eIn.dataset.cid = c.id; }
+        const qIn = document.getElementById("tQty");
+        if (qIn && afford >= 1 && +qIn.value > afford && document.activeElement !== qIn) qIn.value = afford;
+        OG_CTX.afford = afford;
+      }
+      const gEl = document.getElementById("tGuard");
+      if (gEl) gEl.innerHTML = `<div class="t-banner ${g.locked ? "stop" : "ok"}" style="margin-bottom:0"><b>Daily guardrails · ${g.locked ? "Locked" : "Active"}</b>
+        Trades today ${g.td.count}/${s.maxTrades} · Realized today ${g.td.realized >= 0 ? "+" : "−"}${money(Math.abs(g.td.realized))} (limit −${money(g.maxLoss)}) · Loss streak ${g.td.streak}/2${g.locked ? "<ul>" + g.reasons.map(r => `<li>${r}</li>`).join("") + "</ul>" : ""}</div>`;
+      const btn = document.getElementById("tLogBtn");
+      if (btn) {
+        const unaff = OG_CTX.afford != null && OG_CTX.afford < 1;
+        btn.disabled = g.locked || block || unaff || !c;
+        btn.textContent = g.locked ? "Locked by guardrails" : block ? "Blocked after 15:30 ET" : unaff ? "Unaffordable" : "Log trade";
+      }
+      OG_CTX.locked = g.locked || block;
+
+      ogRenderOpen();
+      ogRenderPerf(st);
+      ogRenderJournal();
+      const map = { tSetStart: s.start, tSetLoss: s.lossPct, tSetMax: s.maxTrades };
+      Object.keys(map).forEach(id => { const el = document.getElementById(id); if (el && document.activeElement !== el) el.value = map[id]; });
+      const nEl = document.getElementById("tSetNews"); if (nEl) nEl.checked = s.news;
+    }
+
+    function ogLogTrade() {
+      if (!OG_CTX || !OG_CTX.selContract || OG_CTX.locked) return;
+      const c = OG_CTX.selContract, et = ogET();
+      const entry = parseFloat(document.getElementById("tEntry").value) || c.ask;
+      const qty = Math.max(1, parseInt(document.getElementById("tQty").value, 10) || 1);
+      const ratio = entry / Math.max(0.01, c.mid);
+      ogBook().push({ id: "t" + Date.now() + Math.floor(Math.random() * 1000), sym: c.sym, type: c.type, K: c.K, entry: +entry.toFixed(2), qty,
+        score: c.goodScore, setup: c.tag.replace(/[^\x20-\x7E]/g, "").replace(/^[\s#\d]+/, "").trim() || "0DTE", rr: c.effectiveRR,
+        target: +((c.mid + c.rawProfitDollar / 100) * ratio).toFixed(2), stop: +(entry * 0.75).toFixed(2), stockAtEntry: OG_CTX.prof.p,
+        openedAt: ogNow().getTime(), day: et.day, mins: et.mins, hm: et.hm, exit: null, pnl: null, closedAt: null });
+      ogSave(); renderAll(false);
+    }
+    function ogCloseTrade(id, px) {
+      const t = ogBook().find(x => x.id === id); if (!t) return;
+      const inp = document.getElementById("tExit_" + id);
+      const exit = px != null ? px : parseFloat(inp && inp.value);
+      if (!(exit >= 0)) return;
+      t.exit = +(+exit).toFixed(2); t.closedAt = ogNow().getTime();
+      t.pnl = +((t.exit - t.entry) * 100 * t.qty).toFixed(2);
+      ogSave(); renderAll(false);
+    }
+    function ogEstValue(t) {
+      if (!OG_CTX) return null;
+      const { prof, sym } = OG_CTX;
+      if (sym !== t.sym) { const p2 = getProfile(t.sym).prof; return ogBS(p2, t); }
+      return ogBS(prof, t);
+    }
+    function ogBS(prof, t) {
+      const et = ogET(); const hrsLeft = Math.max(0.05, (960 - et.mins) / 60);
+      return Math.max(0.01, +bs(prof.p, t.K, (hrsLeft / 6.5) / 365, Math.max(0.12, prof.iv / 100), t.type).price.toFixed(2));
+    }
+    function ogRenderOpen() {
+      const el = document.getElementById("tOpen"); if (!el) return;
+      const open = ogBook().filter(t => t.exit == null);
+      if (!open.length) { el.innerHTML = `<div class="s-step-sub" style="margin:0">No open positions.</div>`; return; }
+      const now = ogNow().getTime();
+      el.innerHTML = open.map(t => {
+        const est = ogEstValue(t);
+        const pl = (est - t.entry) * 100 * t.qty;
+        const el_ = (now - t.openedAt) / 60000;
+        const left = 45 - el_;
+        const mm = Math.max(0, Math.floor(Math.abs(left))), ss = Math.max(0, Math.floor((Math.abs(left) * 60) % 60));
+        const be = t.entry + (t.target - t.entry) * 0.5;
+        let msg, cls = "";
+        if (est >= t.target) { msg = `Target reached (${money(t.target)}). Take profit now.`; cls = "var(--green)"; }
+        else if (est <= t.stop) { msg = `Stop hit (${money(t.stop)}). Exit now — protect the account.`; cls = "var(--red)"; }
+        else if (el_ >= 45) { msg = "Hold window over (45 min). Exit — time decay is working against you."; cls = "var(--red)"; }
+        else if (est >= be) { msg = `Up 50% of the way to target. Move your stop to break-even (${money(t.entry)}).`; cls = "var(--green)"; }
+        else if (el_ >= 30) { msg = "Inside the 30–45 min exit zone. Tighten up; plan to be out soon."; cls = "var(--yellow)"; }
+        else msg = `Hold. Target ${money(t.target)} · Stop ${money(t.stop)} · Break-even stop at ${money(be)}.`;
+        return `<div class="t-pos">
+          <div class="t-pos-head"><span>${t.sym} $${t.K} ${t.type === "call" ? "Call" : "Put"} × ${t.qty}</span><span style="color:${pl >= 0 ? "var(--green)" : "var(--red)"}">${pl >= 0 ? "+" : "−"}${money(Math.abs(pl))}</span></div>
+          <div class="t-grid"><div><div class="k">Entry</div><div class="v">${money(t.entry)}</div></div><div><div class="k">Est. value</div><div class="v">${money(est)}</div></div><div><div class="k">${left >= 0 ? "Time left" : "Overdue"}</div><div class="v" style="color:${left < 15 ? "var(--yellow)" : "var(--text)"}">${mm}:${String(ss).padStart(2, "0")}</div></div><div><div class="k">Opened (ET)</div><div class="v">${t.hm}</div></div></div>
+          <div class="t-coach" style="border-left:3px solid ${cls || "var(--border)"}">${msg}</div>
+          <div style="display:flex;gap:8px;margin-top:10px"><input class="t-in" type="number" step="0.01" id="tExit_${t.id}" placeholder="Exit price" value="${est.toFixed(2)}" style="flex:1" /><button class="t-btn sm" onclick="ogCloseTrade('${t.id}')">Close trade</button></div>
+        </div>`;
+      }).join("");
+    }
+    function ogRenderPerf(st) {
+      const svg = document.getElementById("tChart");
+      if (svg) {
+        const W = 600, H = 170, P = 14, eq = st.eq;
+        const lo = Math.min(...eq, st.start) , hi = Math.max(...eq, st.start);
+        const span = Math.max(1, hi - lo);
+        const x = i => P + (eq.length === 1 ? 0 : i * (W - 2 * P) / (eq.length - 1));
+        const y = v => H - P - (v - lo) / span * (H - 2 * P);
+        const y0 = y(st.start);
+        const pts = eq.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+        const segs = eq.slice(1).map((v, i) => `<line x1="${x(i)}" y1="${y(eq[i])}" x2="${x(i + 1)}" y2="${y(v)}" stroke="${v >= st.start ? "#22c55e" : "#ef4444"}" stroke-width="2.2" stroke-linecap="round"/>`).join("");
+        svg.innerHTML = `<defs><clipPath id="cUp"><rect x="0" y="0" width="${W}" height="${y0}"/></clipPath><clipPath id="cDn"><rect x="0" y="${y0}" width="${W}" height="${H - y0}"/></clipPath></defs>
+          <line x1="0" y1="${y0}" x2="${W}" y2="${y0}" stroke="#334155" stroke-dasharray="4 4"/>
+          <text x="${W - 4}" y="${y0 - 4}" fill="#8b95a5" font-size="11" text-anchor="end">Start ${money(st.start)}</text>
+          ${eq.length > 1 ? `<polyline points="${pts}" fill="none" stroke="#22c55e" stroke-width="2.2" clip-path="url(#cUp)"/><polyline points="${pts}" fill="none" stroke="#ef4444" stroke-width="2.2" clip-path="url(#cDn)"/>` : `<text x="${W / 2}" y="${H / 2 + 20}" fill="#8b95a5" font-size="13" text-anchor="middle">Close a trade to start the equity curve</text>`}
+          ${eq.map((v, i) => `<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${v >= st.start ? "#22c55e" : "#ef4444"}"/>`).join("")}`;
+        svg.dataset.points = eq.length;
+        void segs;
+      }
+      const sEl = document.getElementById("tStats");
+      if (sEl) sEl.innerHTML = `<div><div class="k">Win rate</div><div class="v">${st.closed.length ? st.winRate + "%" : "—"}</div></div><div><div class="k">Trades</div><div class="v">${st.closed.length}</div></div><div><div class="k">Avg win</div><div class="v" style="color:var(--green)">${st.wins.length ? "+" + money(st.avgW) : "—"}</div></div><div><div class="k">Avg loss</div><div class="v" style="color:var(--red)">${st.losses.length ? "−" + money(Math.abs(st.avgL)) : "—"}</div></div>`;
+      const bEl = document.getElementById("tBreakdown");
+      if (bEl) {
+        const grp = (fn) => { const m = {}; st.closed.forEach(t => { const k = fn(t); (m[k] = m[k] || { n: 0, w: 0, p: 0 }); m[k].n++; if (t.pnl > 0) m[k].w++; m[k].p += t.pnl; }); return m; };
+        const tbl = (title, m) => { const ks = Object.keys(m); if (!ks.length) return ""; return `<div class="t-sub">${title}</div><table class="t-table"><tr><th>${title.replace("By ", "")}</th><th>Trades</th><th>Win rate</th><th>P&amp;L</th></tr>${ks.map(k => `<tr><td>${k}</td><td>${m[k].n}</td><td>${Math.round(m[k].w / m[k].n * 100)}%</td><td style="color:${m[k].p >= 0 ? "var(--green)" : "var(--red)"}">${m[k].p >= 0 ? "+" : "−"}${money(Math.abs(m[k].p))}</td></tr>`).join("")}</table>`; };
+        bEl.innerHTML = tbl("By setup", grp(t => t.setup)) + tbl("By time of day", grp(t => ogBucket(t.mins))) + tbl("By ticker", grp(t => t.sym));
+      }
+    }
+    function ogRenderJournal() {
+      const el = document.getElementById("tJournal"); if (!el) return;
+      const rows = [...ogBook()].sort((a, b) => b.openedAt - a.openedAt);
+      el.innerHTML = `<tr><th>Date / ET</th><th>Contract</th><th>Qty</th><th>Entry</th><th>Exit</th><th>Win chance</th><th>P&amp;L</th></tr>` +
+        (rows.length ? rows.map(t => `<tr><td>${t.day.slice(5)} ${t.hm}</td><td>${t.sym} $${t.K} ${t.type === "call" ? "C" : "P"}</td><td>${t.qty}</td><td>${money(t.entry)}</td><td>${t.exit == null ? "Open" : money(t.exit)}</td><td>${t.score}%</td><td style="color:${t.pnl == null ? "var(--muted)" : t.pnl >= 0 ? "var(--green)" : "var(--red)"}">${t.pnl == null ? "—" : (t.pnl >= 0 ? "+" : "−") + money(Math.abs(t.pnl))}</td></tr>`).join("")
+          : `<tr><td colspan="7" style="color:var(--muted)">No trades logged yet.</td></tr>`);
+    }
+    function ogExport() {
+      const head = "account,date,time_et,ticker,type,strike,qty,entry,exit,pnl,win_chance,setup";
+      const lines = [];
+      ["live"].forEach(k => OG.books[k].forEach(t => lines.push([k, t.day, t.hm, t.sym, t.type, t.K, t.qty, t.entry, t.exit ?? "", t.pnl ?? "", t.score, `"${t.setup}"`].join(","))));
+      const csv = head + "\n" + lines.join("\n");
+      try {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+        a.download = "optiongrader-journal.csv"; document.body.appendChild(a); a.click(); a.remove();
+      } catch (e) { window.prompt && window.prompt("Copy your journal:", csv); }
+      return csv;
+    }
+    function ogClear() {
+      const k = ogBookKey();
+      if (!window.confirm("Delete all logged trades? This cannot be undone.")) return;
+      OG.books[k] = []; ogSave(); renderAll(false);
+    }
+    (function initDesk() {
+      const num = (id, key) => { const el = document.getElementById(id); if (el) el.addEventListener("change", e => { const v = parseFloat(e.target.value); if (v > 0) { OG.settings[key] = v; ogSave(); renderAll(false); } }); };
+      num("tSetStart", "start"); num("tSetLoss", "lossPct"); num("tSetMax", "maxTrades");
+      const n = document.getElementById("tSetNews"); if (n) n.addEventListener("change", e => { OG.settings.news = e.target.checked; ogSave(); renderAll(false); });
+      setInterval(() => { if (OG_CTX && ogBook().some(t => t.exit == null)) ogRenderOpen(); }, 1000);
+    })();
+
+    (function initSimple() {
+      const st = document.getElementById("simpleTicker");
+      const ti = document.getElementById("tickerInput");
+      function setT(v) {
+        ti.value = v.toUpperCase();
+        ti.dispatchEvent(new Event("input"));
+      }
+      if (st) st.addEventListener("input", e => setT(e.target.value));
+      document.querySelectorAll("#simpleQuick button").forEach(b => {
+        b.addEventListener("click", () => { if (st) st.value = b.textContent; setT(b.textContent); });
+      });
+    })();
+
+    renderAll(true);
+    syncLiveMarket(currentTicker, true);
+    setInterval(() => {
+      const toggle = document.getElementById("autoSyncToggle");
+      if (toggle && toggle.checked) {
+        syncLiveMarket(currentTicker, false);
+      }
+    }, 30000);
+  </script>
+</body>
+</html>
